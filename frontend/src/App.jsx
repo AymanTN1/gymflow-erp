@@ -3,9 +3,8 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ReceptionDashboard from './pages/reception/ReceptionDashboard';
 import CoachDashboard from './pages/coach/CoachDashboard';
+import ClientDashboard from './pages/client/ClientDashboard';
 import './index.css';
-
-function ClientSpace() { return <div className="text-white p-5"><h2>Espace Membre</h2><p>Renouvellement, Réservations.</p></div>; }
 
 function App() {
   return (
@@ -16,7 +15,7 @@ function App() {
         <Route path="/admin/*" element={<AdminDashboard />} />
         <Route path="/reception/*" element={<ReceptionDashboard />} />
         <Route path="/coach/*" element={<CoachDashboard />} />
-        <Route path="/client" element={<ClientSpace />} />
+        <Route path="/client/*" element={<ClientDashboard />} />
       </Routes>
     </BrowserRouter>
   );
