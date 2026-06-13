@@ -1,0 +1,77 @@
+:root {
+  --bg-dark: #0D0D0D;
+  --accent-gold: #FFCC00;
+  --grid-line: rgba(255, 255, 255, 0.05);
+  --text-light: #F0F0F0;
+  --text-muted: #888888;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Tech-Grid UI Background */
+.tech-grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+}
+
+/* Premium Dark Card override for Bootstrap */
+.card-premium {
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 204, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.card-premium .card-header {
+  border-bottom: 1px solid rgba(255, 204, 0, 0.2);
+  background: transparent;
+}
+
+/* Gold Button override */
+.btn-gold {
+  background-color: var(--accent-gold);
+  color: #000;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-gold:hover {
+  background-color: #E6B800;
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+  transform: translateY(-2px);
+  color: #000;
+}
+
+/* Custom Input */
+.form-control-dark {
+  background-color: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-light);
+}
+
+.form-control-dark:focus {
+  background-color: rgba(0,0,0,0.7);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 0.25rem rgba(255, 204, 0, 0.25);
+  color: var(--text-light);
+}
+
+.text-gold {
+  color: var(--accent-gold) !important;
+}
