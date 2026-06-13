@@ -34,7 +34,7 @@ export default function AdminDashboard() {
           <div className="card card-premium p-3 text-center h-100">
             <h5 className="text-muted small text-uppercase fw-bold mb-2">Membres à Relancer (CRM)</h5>
             <h2 className="text-danger fw-bold mb-0">128</h2>
-            <small className="text-muted mt-2 d-block">Dernier passage > 30 jours</small>
+            <small className="text-muted mt-2 d-block">Dernier passage &gt; 30 jours</small>
           </div>
         </div>
       </div>
