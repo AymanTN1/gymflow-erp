@@ -1,8 +1,12 @@
 package com.happyfitness.erp.repository;
 
-// import org.springframework.data.jpa.repository.JpaRepository;
-// import com.happyfitness.erp.model.User;
+import com.happyfitness.erp.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface UserRepository /* extends JpaRepository<User, Long> */ {
-    // Squelette pour la future logique DB
+import java.util.List;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    List<User> findByRole(String role);
 }

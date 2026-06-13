@@ -16,8 +16,8 @@ export default function ErpLayout({ children, role }) {
       case 'RECEPTION':
         return [
           { path: '/reception', label: 'Pointage QR', icon: '📷' },
+          { path: '/reception/clients', label: 'Gestion Clients', icon: '👥' },
           { path: '/reception/pos', label: 'Point de Vente', icon: '💳' },
-          { path: '/reception/invoices', label: 'Facturation', icon: '📄' },
           { path: '/reception/debts', label: 'Gestion Dettes', icon: '⚠️' },
         ];
       case 'COACH':
