@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function AdminFinances() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -81,8 +82,20 @@ export default function AdminFinances() {
   // Calculations for Dashboard
   const totalIncomes = transactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.montant, 0);
   const totalExpenses = transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.montant, 0);
-  const totalSalaries = payrolls.reduce((acc, p) => acc + p.totalPaye, 0); // Already included in transactions, but useful to isolate
   const netProfit = totalIncomes - totalExpenses;
+
+  // PieChart Data (Expenses breakdown)
+  const expensesByCategory = transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => {
+    acc[t.categorie] = (acc[t.categorie] || 0) + t.montant;
+    return acc;
+  }, {});
+  
+  const pieData = Object.keys(expensesByCategory).map(cat => ({
+    name: cat,
+    value: expensesByCategory[cat]
+  }));
+
+  const COLORS = ['#FFCC00', '#ff4d4d', '#3399ff', '#00cc66', '#ff9900', '#cc33ff'];
 
   return (
     <ErpLayout role="ADMIN">
@@ -106,20 +119,38 @@ export default function AdminFinances() {
       {/* Tab Content: Dashboard */}
       {activeTab === 'dashboard' && (
         <div className="row g-4">
-          <div className="col-12 col-md-4">
-            <div className="card card-premium p-4 text-center border-success">
+          <div className="col-12 col-lg-8">
+             <div className="card card-premium p-4 h-100">
+                <h4 className="fw-bold border-bottom border-warning border-opacity-25 pb-2 mb-4">Répartition des Charges</h4>
+                {pieData.length > 0 ? (
+                  <div style={{ width: '100%', height: '300px' }}>
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={80} outerRadius={120} paddingAngle={5} dataKey="value">
+                          {pieData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(18,18,18,0.9)', borderRadius: '8px', border: '1px solid #FFCC00' }} itemStyle={{ fontWeight: 'bold', color: '#fff' }} />
+                        <Legend wrapperStyle={{ color: '#fff' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted p-5">Aucune charge enregistrée pour générer le graphique.</div>
+                )}
+             </div>
+          </div>
+          <div className="col-12 col-lg-4 d-flex flex-column gap-4">
+            <div className="card card-premium p-4 text-center border-success flex-grow-1 d-flex flex-column justify-content-center">
               <h5 className="text-success fw-bold">Total Entrées</h5>
               <h2 className="text-white">{totalIncomes.toFixed(2)} DH</h2>
             </div>
-          </div>
-          <div className="col-12 col-md-4">
-            <div className="card card-premium p-4 text-center border-danger">
+            <div className="card card-premium p-4 text-center border-danger flex-grow-1 d-flex flex-column justify-content-center">
               <h5 className="text-danger fw-bold">Total Sorties (Charges)</h5>
               <h2 className="text-white">{totalExpenses.toFixed(2)} DH</h2>
             </div>
-          </div>
-          <div className="col-12 col-md-4">
-            <div className="card card-premium p-4 text-center border-warning">
+            <div className="card card-premium p-4 text-center border-warning flex-grow-1 d-flex flex-column justify-content-center" style={{ backgroundColor: 'rgba(255, 204, 0, 0.05)' }}>
               <h5 className="text-gold fw-bold">Bénéfice Net Réel</h5>
               <h2 className={netProfit >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}>
                 {netProfit.toFixed(2)} DH
