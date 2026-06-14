@@ -33,7 +33,7 @@ public class DataSeeder implements CommandLineRunner {
             User admin = new User();
             admin.setNom("M. Ayman (Propriétaire)");
             admin.setEmail("admin@happyfitness.ma");
-            admin.setPassword("admin123");
+            admin.setMotDePasse("admin123");
             admin.setRole("ADMIN");
             userRepository.save(admin);
 
@@ -41,14 +41,14 @@ public class DataSeeder implements CommandLineRunner {
             User coach1 = new User();
             coach1.setNom("Youssef (Coach)");
             coach1.setEmail("youssef@happyfitness.ma");
-            coach1.setPassword("coach123");
+            coach1.setMotDePasse("coach123");
             coach1.setRole("COACH");
             userRepository.save(coach1);
 
             User reception = new User();
             reception.setNom("Sara (Réception)");
             reception.setEmail("sara@happyfitness.ma");
-            reception.setPassword("rec123");
+            reception.setMotDePasse("rec123");
             reception.setRole("RECEPTION");
             userRepository.save(reception);
 
