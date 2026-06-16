@@ -1,13 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
 export default function ReceptionDashboard() {
-  const [scanStatus, setScanStatus] = useState(null); // 'success', 'warning', 'danger'
+  const [scanStatus, setScanStatus] = useState(null); // { status: 'SUCCESS'|'WARNING'|'DANGER', message: '', clientName: '' }
 
-  const simulateScan = (type) => {
-    setScanStatus(type);
-    setTimeout(() => setScanStatus(null), 3000);
-  };
+  useEffect(() => {
+    // Connexion SSE au Backend
+    const eventSource = new EventSource('http://localhost:8080/api/checkin/stream');
+    
+    eventSource.addEventListener('scanEvent', (event) => {
+      const data = JSON.parse(event.data);
+      setScanStatus({
+        status: data.status,
+        message: data.message,
+        clientName: data.clientName
+      });
+      
+      // Effacer l'alerte après 5 secondes
+      setTimeout(() => setScanStatus(null), 5000);
+    });
+
+    eventSource.onerror = (error) => {
+      console.error("Erreur SSE :", error);
+      eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
 
   return (
     <ErpLayout role="RECEPTION">
@@ -17,40 +38,32 @@ export default function ReceptionDashboard() {
       </div>
 
       <div className="row g-4 mb-4">
-        {/* Module Pointage Rapide */}
+        {/* Module Pointage Réel (SSE) */}
         <div className="col-12 col-lg-5">
-          <div className="card card-premium p-4 h-100 text-center">
-            <h4 className="fw-bold border-bottom border-warning border-opacity-25 pb-2 mb-4">Scanner QR Code</h4>
+          <div className="card card-premium p-4 h-100 text-center border-warning border-opacity-50" style={{ boxShadow: scanStatus ? `0 0 30px var(--bs-${scanStatus.status.toLowerCase()})` : 'none', transition: 'box-shadow 0.3s' }}>
+            <h4 className="fw-bold border-bottom border-warning border-opacity-25 pb-2 mb-4">Scanner QR Code Fixe</h4>
             
             <div className="d-flex justify-content-center align-items-center mb-4">
               <div 
-                className="border border-2 border-warning border-opacity-50 rounded d-flex flex-column align-items-center justify-content-center p-4"
-                style={{ width: '200px', height: '200px', backgroundColor: 'rgba(0,0,0,0.5)' }}
+                className="bg-white rounded d-flex flex-column align-items-center justify-content-center p-2"
+                style={{ width: '200px', height: '200px' }}
               >
-                <span className="fs-1">📷</span>
-                <span className="text-muted small mt-2">En attente de scan...</span>
+                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=GYMFLOW-DESK-01`} alt="QR Code Réception" className="w-100 h-100"/>
               </div>
             </div>
+            
+            <p className="text-muted small">QR Code fixe posé sur le comptoir.<br/>Le client le scanne avec son téléphone.</p>
 
-            <div className="d-flex gap-2 justify-content-center">
-              <button onClick={() => simulateScan('success')} className="btn btn-sm btn-outline-success">Simuler Vert</button>
-              <button onClick={() => simulateScan('warning')} className="btn btn-sm btn-outline-warning">Simuler Orange</button>
-              <button onClick={() => simulateScan('danger')} className="btn btn-sm btn-outline-danger">Simuler Rouge</button>
-            </div>
-
-            {scanStatus === 'success' && (
-              <div className="alert alert-success mt-4 mb-0 fw-bold bg-success bg-opacity-25 border-success text-success">
-                ✅ Accès Autorisé - Abonnement valide
+            {scanStatus ? (
+              <div className={`alert mt-4 mb-0 fw-bold bg-${scanStatus.status.toLowerCase()} bg-opacity-25 border-${scanStatus.status.toLowerCase()} text-${scanStatus.status.toLowerCase() === 'warning' ? 'warning' : scanStatus.status.toLowerCase() === 'danger' ? 'danger' : 'success'}`}>
+                <h5 className="mb-1">{scanStatus.clientName}</h5>
+                {scanStatus.status === 'SUCCESS' && `✅ ${scanStatus.message}`}
+                {scanStatus.status === 'WARNING' && `⚠️ ${scanStatus.message}`}
+                {scanStatus.status === 'DANGER' && `❌ ${scanStatus.message}`}
               </div>
-            )}
-            {scanStatus === 'warning' && (
-              <div className="alert alert-warning mt-4 mb-0 fw-bold bg-warning bg-opacity-25 border-warning text-warning">
-                ⚠️ Accès Autorisé - Expire dans 2 jours
-              </div>
-            )}
-            {scanStatus === 'danger' && (
-              <div className="alert alert-danger mt-4 mb-0 fw-bold bg-danger bg-opacity-25 border-danger text-danger">
-                ❌ Accès Refusé - Abonnement expiré (Dette: 250 DH)
+            ) : (
+              <div className="alert mt-4 mb-0 bg-dark border-secondary text-muted">
+                En attente d'un scan client...
               </div>
             )}
           </div>
