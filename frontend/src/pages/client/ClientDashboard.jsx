@@ -1,10 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import ErpLayout from '../../components/layout/ErpLayout';
 
 export default function ClientDashboard() {
   const [scanStatus, setScanStatus] = useState(null);
   const [scanning, setScanning] = useState(false);
+  const [activeCount, setActiveCount] = useState(0);
+
+  useEffect(() => {
+    fetch('http://localhost:8080/api/checkin/active-count')
+      .then(res => res.json())
+      .then(data => setActiveCount(data.count))
+      .catch(err => console.error(err));
+
+    const eventSource = new EventSource('http://localhost:8080/api/checkin/stream');
+    eventSource.addEventListener('countUpdate', (event) => {
+      const data = JSON.parse(event.data);
+      setActiveCount(data.count);
+    });
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
 
   const handleScan = async (text) => {
     if (text) {
@@ -27,10 +45,24 @@ export default function ClientDashboard() {
     }
   };
 
+  const getAffluenceBadge = () => {
+    if (activeCount < 10) return { text: "Faible", class: "bg-success" };
+    if (activeCount < 25) return { text: "Moyenne", class: "bg-warning text-dark" };
+    return { text: "Forte", class: "bg-danger" };
+  };
+
+  const affluence = getAffluenceBadge();
+
   return (
     <ErpLayout role="CLIENT">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold mb-0">Espace Personnel</h2>
+        <div className="d-flex align-items-center gap-2">
+          <span className="text-muted small">Affluence actuelle :</span>
+          <span className={`badge ${affluence.class} border p-2`}>
+            {affluence.text} ({activeCount} pers.)
+          </span>
+        </div>
       </div>
 
       <div className="row g-4 mb-4">

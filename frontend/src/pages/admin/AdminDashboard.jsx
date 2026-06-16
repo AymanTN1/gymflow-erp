@@ -5,11 +5,28 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export default function AdminDashboard() {
   const [transactions, setTransactions] = useState([]);
 
+  const [activeCount, setActiveCount] = useState(0);
+
   useEffect(() => {
     fetch('http://localhost:8080/api/finances/transactions')
       .then(res => res.json())
       .then(data => setTransactions(data))
       .catch(err => console.error(err));
+
+    fetch('http://localhost:8080/api/checkin/active-count')
+      .then(res => res.json())
+      .then(data => setActiveCount(data.count))
+      .catch(err => console.error("Erreur fetch count:", err));
+
+    const eventSource = new EventSource('http://localhost:8080/api/checkin/stream');
+    eventSource.addEventListener('countUpdate', (event) => {
+      const data = JSON.parse(event.data);
+      setActiveCount(data.count);
+    });
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   // Compute MRR and active members based on DB
@@ -30,7 +47,12 @@ export default function AdminDashboard() {
   return (
     <ErpLayout role="ADMIN">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold mb-0">Dashboard Global</h2>
+        <div className="d-flex align-items-center gap-4">
+          <h2 className="fw-bold mb-0">Dashboard Global</h2>
+          <div className="badge bg-success bg-opacity-25 text-success border border-success p-2 px-3 fs-6 rounded-pill animate-pulse">
+            <span className="me-2">🔴 LIVE</span> {activeCount} personnes en salle
+          </div>
+        </div>
         <button className="btn btn-gold px-4">Exporter le Rapport</button>
       </div>
 

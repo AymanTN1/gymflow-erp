@@ -3,8 +3,15 @@ import ErpLayout from '../../components/layout/ErpLayout';
 
 export default function ReceptionDashboard() {
   const [scanStatus, setScanStatus] = useState(null); // { status: 'SUCCESS'|'WARNING'|'DANGER', message: '', clientName: '' }
+  const [activeCount, setActiveCount] = useState(0);
 
   useEffect(() => {
+    // Initial fetch for count
+    fetch('http://localhost:8080/api/checkin/active-count')
+      .then(res => res.json())
+      .then(data => setActiveCount(data.count))
+      .catch(err => console.error("Erreur fetch count:", err));
+
     // Connexion SSE au Backend
     const eventSource = new EventSource('http://localhost:8080/api/checkin/stream');
     
@@ -15,9 +22,12 @@ export default function ReceptionDashboard() {
         message: data.message,
         clientName: data.clientName
       });
-      
-      // Effacer l'alerte après 5 secondes
       setTimeout(() => setScanStatus(null), 5000);
+    });
+
+    eventSource.addEventListener('countUpdate', (event) => {
+      const data = JSON.parse(event.data);
+      setActiveCount(data.count);
     });
 
     eventSource.onerror = (error) => {
@@ -33,7 +43,12 @@ export default function ReceptionDashboard() {
   return (
     <ErpLayout role="RECEPTION">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold mb-0">Accueil & Pointage</h2>
+        <div className="d-flex align-items-center gap-4">
+          <h2 className="fw-bold mb-0">Accueil & Pointage</h2>
+          <div className="badge bg-success bg-opacity-25 text-success border border-success p-2 px-3 fs-6 rounded-pill">
+            <span className="me-2">🟢</span> {activeCount} Personnes en salle
+          </div>
+        </div>
         <button className="btn btn-gold px-4 py-2">Nouvelle Inscription</button>
       </div>
 
