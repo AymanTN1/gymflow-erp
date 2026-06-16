@@ -55,7 +55,7 @@ export default function ClientDashboard() {
 
   return (
     <ErpLayout role="CLIENT">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <h2 className="fw-bold mb-0">Espace Personnel</h2>
         <div className="d-flex align-items-center gap-2">
           <span className="text-muted small">Affluence actuelle :</span>

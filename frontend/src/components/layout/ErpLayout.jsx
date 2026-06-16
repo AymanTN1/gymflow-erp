@@ -44,9 +44,9 @@ export default function ErpLayout({ children, role }) {
   return (
     <>
       <div className="tech-grid-bg"></div>
-      <div className="d-flex min-vh-100">
-        {/* Sidebar */}
-        <div className="card-premium border-0 border-end border-warning border-opacity-25 p-3 d-flex flex-column" style={{ width: '280px', borderRadius: '0' }}>
+      <div className="d-flex min-vh-100 flex-column flex-md-row">
+        {/* Sidebar (Desktop Only) */}
+        <div className="card-premium border-0 border-end border-warning border-opacity-25 p-3 d-none d-md-flex flex-column" style={{ width: '280px', borderRadius: '0' }}>
           <div className="mb-4 text-center">
             <h3 className="fw-bold mb-0 text-white"><span className="text-gold">GymFlow</span> ERP</h3>
             <span className="badge bg-warning text-dark mt-2 text-uppercase">{role}</span>
@@ -74,9 +74,20 @@ export default function ErpLayout({ children, role }) {
           </button>
         </div>
 
+        {/* Mobile Header (Mobile Only) */}
+        <div className="d-md-none p-3 border-bottom border-warning border-opacity-25 d-flex justify-content-between align-items-center" style={{ backgroundColor: 'rgba(13, 13, 13, 0.9)', position: 'sticky', top: 0, zIndex: 1000 }}>
+          <h5 className="fw-bold mb-0 text-white"><span className="text-gold">GymFlow</span></h5>
+          <div className="d-flex align-items-center gap-2">
+            <span className="badge bg-warning text-dark">{role}</span>
+            <div className="bg-gold rounded-circle d-flex justify-content-center align-items-center fw-bold text-dark" style={{ width: '30px', height: '30px', fontSize: '12px', backgroundColor: 'var(--accent-gold)' }}>
+              {role.substring(0, 1)}
+            </div>
+          </div>
+        </div>
+
         {/* Main Content */}
-        <div className="flex-grow-1 d-flex flex-column">
-          <header className="p-3 border-bottom border-warning border-opacity-25 d-flex justify-content-end align-items-center" style={{ backgroundColor: 'rgba(13, 13, 13, 0.8)', backdropFilter: 'blur(10px)' }}>
+        <div className="flex-grow-1 d-flex flex-column w-100" style={{ paddingBottom: role === 'CLIENT' ? '70px' : '0' }}>
+          <header className="p-3 border-bottom border-warning border-opacity-25 d-none d-md-flex justify-content-end align-items-center" style={{ backgroundColor: 'rgba(13, 13, 13, 0.8)', backdropFilter: 'blur(10px)' }}>
             <div className="d-flex align-items-center gap-3">
               <span className="text-muted small">Status: <span className="text-success">Connecté</span></span>
               <div className="bg-gold rounded-circle d-flex justify-content-center align-items-center fw-bold text-dark" style={{ width: '40px', height: '40px', backgroundColor: 'var(--accent-gold)' }}>
@@ -85,10 +96,30 @@ export default function ErpLayout({ children, role }) {
             </div>
           </header>
           
-          <main className="p-4 flex-grow-1 overflow-auto">
+          <main className="p-3 p-md-4 flex-grow-1 overflow-auto">
             {children}
           </main>
         </div>
+
+        {/* Mobile Bottom Navigation (Client Only) */}
+        {role === 'CLIENT' && (
+          <div className="d-md-none fixed-bottom d-flex justify-content-around align-items-center py-2 px-3 border-top border-warning border-opacity-25 shadow-lg" style={{ backgroundColor: 'rgba(18, 18, 18, 0.95)', backdropFilter: 'blur(10px)' }}>
+            {links.map((link) => (
+              <Link 
+                key={link.path}
+                to={link.path} 
+                className={`text-decoration-none d-flex flex-column align-items-center ${location.pathname === link.path ? 'text-gold' : 'text-muted'}`}
+              >
+                <span className="fs-4 mb-1">{link.icon}</span>
+                <span style={{ fontSize: '10px', fontWeight: location.pathname === link.path ? 'bold' : 'normal' }}>{link.label}</span>
+              </Link>
+            ))}
+            <div onClick={handleLogout} className="text-muted text-decoration-none d-flex flex-column align-items-center" style={{ cursor: 'pointer' }}>
+               <span className="fs-4 mb-1">🚪</span>
+               <span style={{ fontSize: '10px' }}>Quitter</span>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
