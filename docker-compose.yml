@@ -21,10 +21,13 @@ services:
       DB_NAME: gymflow_erp
       DB_USER: postgres
       DB_PASS: postgres
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
     ports:
       - "8080:8080"
     depends_on:
       - db
+      - mailhog
     restart: unless-stopped
 
   frontend:
@@ -40,6 +43,14 @@ services:
       - /app/node_modules
     depends_on:
       - backend
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: gymflow-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     restart: unless-stopped
 
 volumes:
