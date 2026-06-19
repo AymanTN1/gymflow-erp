@@ -4,12 +4,18 @@ import ErpLayout from '../../components/layout/ErpLayout';
 export default function ReceptionClients() {
   const [clients, setClients] = useState([]);
   const [memberships, setMemberships] = useState([]);
-  const [activeTab, setActiveTab] = useState('list'); // list, new_client, new_membership
+  const [activeTab, setActiveTab] = useState('list'); // list, new_client, new_membership, verify_email
   
   // Forms state
   const [newClient, setNewClient] = useState({ nomComplet: '', email: '', telephone: '', cin: '' });
   const [newMembership, setNewMembership] = useState({ clientId: '', typeAbonnement: '1 MOIS', prixPaye: '' });
   const [invoiceData, setInvoiceData] = useState(null);
+  
+  // Email verification state
+  const [pendingClient, setPendingClient] = useState(null);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verifyMessage, setVerifyMessage] = useState(null);
+  const [verifyError, setVerifyError] = useState(null);
 
   const fetchClients = async () => {
     try {
@@ -49,12 +55,70 @@ export default function ReceptionClients() {
         body: JSON.stringify(newClient)
       });
       if (res.ok) {
+        const savedClient = await res.json();
         fetchClients();
+        
+        // Si le client a un email, passer à l'écran de vérification
+        if (newClient.email && newClient.email.trim() !== '') {
+          setPendingClient(savedClient);
+          setVerificationCode('');
+          setVerifyMessage(null);
+          setVerifyError(null);
+          setActiveTab('verify_email');
+        } else {
+          setActiveTab('list');
+        }
+        
         setNewClient({ nomComplet: '', email: '', telephone: '', cin: '' });
-        setActiveTab('list');
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setVerifyMessage(null);
+    setVerifyError(null);
+    
+    try {
+      const res = await fetch(`http://localhost:8080/api/reception/clients/${pendingClient.id}/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: verificationCode })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setVerifyMessage('✅ ' + data.message);
+        fetchClients();
+        setTimeout(() => {
+          setPendingClient(null);
+          setActiveTab('list');
+        }, 2000);
+      } else {
+        setVerifyError('❌ ' + data.message);
+      }
+    } catch (err) {
+      setVerifyError('❌ Erreur de connexion au serveur.');
+    }
+  };
+
+  const handleResendCode = async () => {
+    setVerifyMessage(null);
+    setVerifyError(null);
+    try {
+      const res = await fetch(`http://localhost:8080/api/reception/clients/${pendingClient.id}/resend-code`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVerifyMessage('📧 Nouveau code envoyé !');
+      } else {
+        setVerifyError('Erreur lors du renvoi du code.');
+      }
+    } catch (err) {
+      setVerifyError('Erreur de connexion.');
     }
   };
 
@@ -70,14 +134,14 @@ export default function ReceptionClients() {
         const data = await res.json();
         fetchMemberships();
         
-        // Trouver les infos du client pour la facture
         const clientInfo = clients.find(c => c.id.toString() === newMembership.clientId.toString());
         
         setInvoiceData({
           membership: data,
           client: clientInfo,
           date: new Date().toLocaleDateString('fr-FR'),
-          time: new Date().toLocaleTimeString('fr-FR')
+          time: new Date().toLocaleTimeString('fr-FR'),
+          emailSent: clientInfo?.email ? true : false
         });
         
         setNewMembership({ clientId: '', typeAbonnement: '1 MOIS', prixPaye: '' });
@@ -94,6 +158,12 @@ export default function ReceptionClients() {
   const handleNewSale = () => {
     setInvoiceData(null);
     setActiveTab('list');
+  };
+
+  const getStatutBadge = (client) => {
+    if (client.statut === 'ACTIF') return 'bg-success';
+    if (client.statut === 'EN_ATTENTE') return 'bg-warning text-dark';
+    return 'bg-danger';
   };
 
   return (
@@ -115,13 +185,14 @@ export default function ReceptionClients() {
           </button>
           <button 
             className={`btn ${(activeTab === 'new_membership' || invoiceData) ? 'btn-gold' : 'btn-outline-light'}`}
-            onClick={() => setActiveTab('new_membership')}
+            onClick={() => { setActiveTab('new_membership'); setInvoiceData(null); }}
           >
             + Nouvel Abonnement
           </button>
         </div>
       </div>
 
+      {/* ====== CLIENT LIST ====== */}
       {!invoiceData && activeTab === 'list' && (
         <div className="row hide-on-print">
           <div className="col-md-8">
@@ -134,12 +205,13 @@ export default function ReceptionClients() {
                       <th className="bg-transparent text-muted">ID</th>
                       <th className="bg-transparent text-muted">Nom Complet</th>
                       <th className="bg-transparent text-muted">Téléphone</th>
+                      <th className="bg-transparent text-muted">Email</th>
                       <th className="bg-transparent text-muted">Statut</th>
                     </tr>
                   </thead>
                   <tbody>
                     {clients.length === 0 ? (
-                      <tr><td colSpan="4" className="text-center text-muted">Aucun client trouvé.</td></tr>
+                      <tr><td colSpan="5" className="text-center text-muted">Aucun client trouvé.</td></tr>
                     ) : (
                       clients.map(c => (
                         <tr key={c.id}>
@@ -147,7 +219,32 @@ export default function ReceptionClients() {
                           <td className="fw-bold">{c.nomComplet}</td>
                           <td>{c.telephone}</td>
                           <td>
-                            <span className={`badge ${c.statut === 'ACTIF' ? 'bg-success' : 'bg-danger'}`}>
+                            {c.email ? (
+                              <span className="d-flex align-items-center gap-1">
+                                <span className="text-truncate" style={{ maxWidth: '150px' }}>{c.email}</span>
+                                {c.emailVerified ? (
+                                  <span className="badge bg-info" title="Email vérifié">✓</span>
+                                ) : (
+                                  <span 
+                                    className="badge bg-warning text-dark" 
+                                    style={{ cursor: 'pointer' }}
+                                    title="Cliquer pour vérifier"
+                                    onClick={() => {
+                                      setPendingClient(c);
+                                      setVerificationCode('');
+                                      setVerifyMessage(null);
+                                      setVerifyError(null);
+                                      setActiveTab('verify_email');
+                                    }}
+                                  >⏳</span>
+                                )}
+                              </span>
+                            ) : (
+                              <span className="text-muted">—</span>
+                            )}
+                          </td>
+                          <td>
+                            <span className={`badge ${getStatutBadge(c)}`}>
                               {c.statut}
                             </span>
                           </td>
@@ -188,22 +285,25 @@ export default function ReceptionClients() {
         </div>
       )}
 
+      {/* ====== NEW CLIENT FORM ====== */}
       {!invoiceData && activeTab === 'new_client' && (
         <div className="card-premium p-4 hide-on-print" style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h4 className="text-gold mb-4">Inscription d'un Nouveau Client</h4>
           <form onSubmit={handleCreateClient}>
             <div className="mb-3">
-              <label className="form-label text-muted">Nom Complet</label>
+              <label className="form-label text-muted">Nom Complet *</label>
               <input type="text" className="form-control form-control-dark" required
                 value={newClient.nomComplet} onChange={(e) => setNewClient({...newClient, nomComplet: e.target.value})} />
             </div>
             <div className="mb-3">
               <label className="form-label text-muted">Email</label>
               <input type="email" className="form-control form-control-dark" 
+                placeholder="Un code de vérification sera envoyé..."
                 value={newClient.email} onChange={(e) => setNewClient({...newClient, email: e.target.value})} />
+              <small className="text-muted">📧 Si renseigné, un code de vérification à 6 chiffres sera envoyé à cette adresse.</small>
             </div>
             <div className="mb-3">
-              <label className="form-label text-muted">Téléphone</label>
+              <label className="form-label text-muted">Téléphone *</label>
               <input type="text" className="form-control form-control-dark" required
                 value={newClient.telephone} onChange={(e) => setNewClient({...newClient, telephone: e.target.value})} />
             </div>
@@ -217,6 +317,60 @@ export default function ReceptionClients() {
         </div>
       )}
 
+      {/* ====== EMAIL VERIFICATION SCREEN ====== */}
+      {!invoiceData && activeTab === 'verify_email' && pendingClient && (
+        <div className="card-premium p-5 hide-on-print" style={{ maxWidth: '500px', margin: '0 auto' }}>
+          <div className="text-center mb-4">
+            <div className="bg-warning rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style={{ width: '70px', height: '70px' }}>
+              <span className="fs-2">📧</span>
+            </div>
+            <h3 className="text-gold fw-bold">Vérification de l'Email</h3>
+            <p className="text-muted">
+              Un code à <strong>6 chiffres</strong> a été envoyé à<br/>
+              <strong className="text-light">{pendingClient.email}</strong>
+            </p>
+            <p className="text-muted small">Demandez au client de vérifier sa boîte mail et de vous donner le code.</p>
+          </div>
+
+          <form onSubmit={handleVerifyCode}>
+            <div className="mb-4">
+              <input
+                type="text"
+                className="form-control form-control-dark text-center"
+                style={{ fontSize: '28px', letterSpacing: '12px', fontWeight: 'bold', padding: '15px' }}
+                maxLength="6"
+                placeholder="● ● ● ● ● ●"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                required
+                autoFocus
+              />
+            </div>
+
+            {verifyMessage && (
+              <div className="alert alert-success text-center py-2 mb-3">{verifyMessage}</div>
+            )}
+            {verifyError && (
+              <div className="alert alert-danger text-center py-2 mb-3">{verifyError}</div>
+            )}
+
+            <button type="submit" className="btn btn-gold w-100 py-2 mb-2 fw-bold" disabled={verificationCode.length !== 6}>
+              Vérifier le Code
+            </button>
+          </form>
+
+          <div className="d-flex justify-content-between mt-3">
+            <button className="btn btn-outline-warning btn-sm" onClick={handleResendCode}>
+              🔄 Renvoyer le code
+            </button>
+            <button className="btn btn-outline-light btn-sm" onClick={() => { setPendingClient(null); setActiveTab('list'); }}>
+              Passer cette étape →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ====== NEW MEMBERSHIP FORM ====== */}
       {!invoiceData && activeTab === 'new_membership' && (
         <div className="card-premium p-4 hide-on-print" style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h4 className="text-gold mb-4">Créer un Abonnement (Paiement)</h4>
@@ -250,10 +404,9 @@ export default function ReceptionClients() {
         </div>
       )}
 
-      {/* SUCCESS & INVOICE SCREEN */}
+      {/* ====== SUCCESS & INVOICE SCREEN ====== */}
       {invoiceData && (
         <>
-          {/* UI view for receptionist (Hidden during print) */}
           <div className="card-premium p-5 text-center hide-on-print" style={{ maxWidth: '600px', margin: '0 auto' }}>
             <div className="mb-4">
               <div className="bg-success rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style={{ width: '80px', height: '80px' }}>
@@ -261,6 +414,11 @@ export default function ReceptionClients() {
               </div>
               <h3 className="text-success fw-bold">Paiement Validé !</h3>
               <p className="text-muted">L'abonnement de {invoiceData.client?.nomComplet} est activé jusqu'au {new Date(invoiceData.membership.dateFin).toLocaleDateString()}.</p>
+              {invoiceData.emailSent && (
+                <div className="alert alert-info py-2 mt-2">
+                  📧 La facture a été envoyée automatiquement par email à <strong>{invoiceData.client?.email}</strong>
+                </div>
+              )}
             </div>
             
             <div className="d-flex flex-column gap-3">
@@ -273,7 +431,6 @@ export default function ReceptionClients() {
             </div>
           </div>
 
-          {/* Printable Invoice (Hidden on screen, visible only on print) */}
           <div className="print-only" style={{ background: 'white', color: 'black', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '20px', marginBottom: '30px' }}>
               <div>
