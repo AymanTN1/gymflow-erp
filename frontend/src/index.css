@@ -109,3 +109,38 @@ body, html {
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0,0,0,0.8) !important;
 }
+
+/* -------------------------------------
+ * PRINT STYLES FOR INVOICE
+ * ------------------------------------- */
+.print-only {
+  display: none;
+}
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .tech-grid-bg,
+  .hide-on-print,
+  .navbar,
+  .nav,
+  button,
+  header {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  @page {
+    margin: 0; /* Ensures the page doesn't have ugly headers/footers */
+  }
+}

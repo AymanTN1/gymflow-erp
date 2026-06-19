@@ -9,6 +9,7 @@ export default function ReceptionClients() {
   // Forms state
   const [newClient, setNewClient] = useState({ nomComplet: '', email: '', telephone: '', cin: '' });
   const [newMembership, setNewMembership] = useState({ clientId: '', typeAbonnement: '1 MOIS', prixPaye: '' });
+  const [invoiceData, setInvoiceData] = useState(null);
 
   const fetchClients = async () => {
     try {
@@ -66,34 +67,54 @@ export default function ReceptionClients() {
         body: JSON.stringify(newMembership)
       });
       if (res.ok) {
+        const data = await res.json();
         fetchMemberships();
+        
+        // Trouver les infos du client pour la facture
+        const clientInfo = clients.find(c => c.id.toString() === newMembership.clientId.toString());
+        
+        setInvoiceData({
+          membership: data,
+          client: clientInfo,
+          date: new Date().toLocaleDateString('fr-FR'),
+          time: new Date().toLocaleTimeString('fr-FR')
+        });
+        
         setNewMembership({ clientId: '', typeAbonnement: '1 MOIS', prixPaye: '' });
-        setActiveTab('list');
       }
     } catch (err) {
       console.error(err);
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleNewSale = () => {
+    setInvoiceData(null);
+    setActiveTab('list');
+  };
+
   return (
     <ErpLayout role="RECEPTION">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 hide-on-print">
         <h2 className="fw-bold mb-0">Gestion des Clients & Abonnements</h2>
         <div>
           <button 
-            className={`btn me-2 ${activeTab === 'list' ? 'btn-gold' : 'btn-outline-light'}`}
-            onClick={() => setActiveTab('list')}
+            className={`btn me-2 ${activeTab === 'list' && !invoiceData ? 'btn-gold' : 'btn-outline-light'}`}
+            onClick={() => { setActiveTab('list'); setInvoiceData(null); }}
           >
             Liste des Clients
           </button>
           <button 
             className={`btn me-2 ${activeTab === 'new_client' ? 'btn-gold' : 'btn-outline-light'}`}
-            onClick={() => setActiveTab('new_client')}
+            onClick={() => { setActiveTab('new_client'); setInvoiceData(null); }}
           >
             + Nouveau Client
           </button>
           <button 
-            className={`btn ${activeTab === 'new_membership' ? 'btn-gold' : 'btn-outline-light'}`}
+            className={`btn ${(activeTab === 'new_membership' || invoiceData) ? 'btn-gold' : 'btn-outline-light'}`}
             onClick={() => setActiveTab('new_membership')}
           >
             + Nouvel Abonnement
@@ -101,8 +122,8 @@ export default function ReceptionClients() {
         </div>
       </div>
 
-      {activeTab === 'list' && (
-        <div className="row">
+      {!invoiceData && activeTab === 'list' && (
+        <div className="row hide-on-print">
           <div className="col-md-8">
             <div className="card-premium p-4 h-100">
               <h5 className="text-gold mb-4">Base de Données Clients</h5>
@@ -146,17 +167,20 @@ export default function ReceptionClients() {
                 {memberships.length === 0 ? (
                   <p className="text-muted">Aucun abonnement.</p>
                 ) : (
-                  memberships.slice().reverse().slice(0, 5).map(m => (
-                    <div key={m.id} className="p-3 border border-warning border-opacity-25 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
-                      <div className="d-flex justify-content-between">
-                        <span className="fw-bold">Client #{m.clientId}</span>
-                        <span className="badge bg-gold text-dark">{m.typeAbonnement}</span>
+                  memberships.slice().reverse().slice(0, 5).map(m => {
+                    const clientName = clients.find(c => c.id === m.clientId)?.nomComplet || `Client #${m.clientId}`;
+                    return (
+                      <div key={m.id} className="p-3 border border-warning border-opacity-25 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                        <div className="d-flex justify-content-between">
+                          <span className="fw-bold text-truncate" style={{ maxWidth: '150px' }}>{clientName}</span>
+                          <span className="badge bg-gold text-dark">{m.typeAbonnement}</span>
+                        </div>
+                        <div className="text-muted small mt-2">
+                          Payé: {m.prixPaye} DH | Fin: {new Date(m.dateFin).toLocaleDateString()}
+                        </div>
                       </div>
-                      <div className="text-muted small mt-2">
-                        Payé: {m.prixPaye} DH | Fin: {new Date(m.dateFin).toLocaleDateString()}
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -164,8 +188,8 @@ export default function ReceptionClients() {
         </div>
       )}
 
-      {activeTab === 'new_client' && (
-        <div className="card-premium p-4" style={{ maxWidth: '600px', margin: '0 auto' }}>
+      {!invoiceData && activeTab === 'new_client' && (
+        <div className="card-premium p-4 hide-on-print" style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h4 className="text-gold mb-4">Inscription d'un Nouveau Client</h4>
           <form onSubmit={handleCreateClient}>
             <div className="mb-3">
@@ -193,8 +217,8 @@ export default function ReceptionClients() {
         </div>
       )}
 
-      {activeTab === 'new_membership' && (
-        <div className="card-premium p-4" style={{ maxWidth: '600px', margin: '0 auto' }}>
+      {!invoiceData && activeTab === 'new_membership' && (
+        <div className="card-premium p-4 hide-on-print" style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h4 className="text-gold mb-4">Créer un Abonnement (Paiement)</h4>
           <form onSubmit={handleCreateMembership}>
             <div className="mb-3">
@@ -224,6 +248,89 @@ export default function ReceptionClients() {
             <button type="submit" className="btn btn-gold w-100 py-2">Valider le Paiement</button>
           </form>
         </div>
+      )}
+
+      {/* SUCCESS & INVOICE SCREEN */}
+      {invoiceData && (
+        <>
+          {/* UI view for receptionist (Hidden during print) */}
+          <div className="card-premium p-5 text-center hide-on-print" style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <div className="mb-4">
+              <div className="bg-success rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style={{ width: '80px', height: '80px' }}>
+                <span className="fs-1 text-white">✓</span>
+              </div>
+              <h3 className="text-success fw-bold">Paiement Validé !</h3>
+              <p className="text-muted">L'abonnement de {invoiceData.client?.nomComplet} est activé jusqu'au {new Date(invoiceData.membership.dateFin).toLocaleDateString()}.</p>
+            </div>
+            
+            <div className="d-flex flex-column gap-3">
+              <button onClick={handlePrint} className="btn btn-gold w-100 py-3 fw-bold fs-5 d-flex justify-content-center align-items-center gap-2">
+                <span>🖨️</span> Télécharger / Imprimer la Facture
+              </button>
+              <button onClick={handleNewSale} className="btn btn-outline-light w-100 py-2">
+                Retour à la liste
+              </button>
+            </div>
+          </div>
+
+          {/* Printable Invoice (Hidden on screen, visible only on print) */}
+          <div className="print-only" style={{ background: 'white', color: 'black', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '20px', marginBottom: '30px' }}>
+              <div>
+                <h1 style={{ margin: 0, fontWeight: 'bold' }}>GymFlow</h1>
+                <p style={{ margin: '5px 0 0 0', color: '#666' }}>123 Avenue du Sport, Casablanca</p>
+                <p style={{ margin: '0', color: '#666' }}>Tél : 05 22 00 00 00</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <h2 style={{ margin: 0, color: '#333' }}>FACTURE</h2>
+                <p style={{ margin: '5px 0 0 0' }}><strong>N° :</strong> FAC-{invoiceData.membership.id}-{new Date().getFullYear()}</p>
+                <p style={{ margin: '0' }}><strong>Date :</strong> {invoiceData.date} à {invoiceData.time}</p>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '40px' }}>
+              <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>Facturé à :</h4>
+              <p style={{ margin: '5px 0', fontSize: '18px', fontWeight: 'bold' }}>{invoiceData.client?.nomComplet}</p>
+              <p style={{ margin: '0' }}>Téléphone : {invoiceData.client?.telephone}</p>
+              {invoiceData.client?.cin && <p style={{ margin: '0' }}>CIN : {invoiceData.client.cin}</p>}
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '40px' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #000' }}>
+                  <th style={{ padding: '12px', textAlign: 'left' }}>Description</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Date d'Expiration</th>
+                  <th style={{ padding: '12px', textAlign: 'right' }}>Montant Total (TTC)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '15px 12px' }}>Abonnement Fitness - {invoiceData.membership.typeAbonnement}</td>
+                  <td style={{ padding: '15px 12px', textAlign: 'center' }}>{new Date(invoiceData.membership.dateFin).toLocaleDateString()}</td>
+                  <td style={{ padding: '15px 12px', textAlign: 'right', fontWeight: 'bold', fontSize: '16px' }}>{invoiceData.membership.prixPaye} DH</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '50px' }}>
+              <div style={{ width: '300px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
+                  <span>Sous-total</span>
+                  <span>{invoiceData.membership.prixPaye} DH</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '2px solid #000', fontWeight: 'bold', fontSize: '18px' }}>
+                  <span>TOTAL PAYÉ</span>
+                  <span>{invoiceData.membership.prixPaye} DH</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center', color: '#666', borderTop: '1px solid #ccc', paddingTop: '20px', fontSize: '12px' }}>
+              <p style={{ margin: '0' }}>Merci de votre confiance !</p>
+              <p style={{ margin: '5px 0' }}>Ce document tient lieu de justificatif de paiement.</p>
+            </div>
+          </div>
+        </>
       )}
     </ErpLayout>
   );
