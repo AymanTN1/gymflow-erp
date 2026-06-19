@@ -16,11 +16,15 @@ public class Client {
     private String telephone;
     private String cin; // Carte d'Identité Nationale
     private LocalDateTime dateInscription;
-    private String statut; // ACTIF, INACTIF, EXPIRE
+    private String statut; // ACTIF, INACTIF, EXPIRE, EN_ATTENTE
+    
+    private Boolean emailVerified;
+    private String verificationCode;
 
     public Client() {
         this.dateInscription = LocalDateTime.now();
-        this.statut = "ACTIF";
+        this.statut = "EN_ATTENTE";
+        this.emailVerified = false;
     }
 
     // Getters and Setters
@@ -44,4 +48,10 @@ public class Client {
 
     public String getStatut() { return statut; }
     public void setStatut(String statut) { this.statut = statut; }
+
+    public Boolean getEmailVerified() { return emailVerified; }
+    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
+
+    public String getVerificationCode() { return verificationCode; }
+    public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
 }
