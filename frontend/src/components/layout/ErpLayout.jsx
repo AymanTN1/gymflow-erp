@@ -10,6 +10,7 @@ export default function ErpLayout({ children, role }) {
         return [
           { path: '/admin', label: 'Dashboard MRR', icon: '📊' },
           { path: '/admin/finances', label: 'Grand Livre', icon: '💰' },
+          { path: '/admin/planning', label: 'Planning Cours', icon: '📅' },
           { path: '/admin/rh', label: 'Ressources Humaines', icon: '👥' },
           { path: '/admin/crm', label: 'Win-Back CRM', icon: '🎯' },
         ];
@@ -17,6 +18,7 @@ export default function ErpLayout({ children, role }) {
         return [
           { path: '/reception', label: 'Pointage QR', icon: '📷' },
           { path: '/reception/clients', label: 'Gestion Clients', icon: '👥' },
+          { path: '/reception/pointage-cours', label: 'Pointage Cours', icon: '📋' },
           { path: '/reception/pos', label: 'Point de Vente', icon: '💳' },
           { path: '/reception/debts', label: 'Gestion Dettes', icon: '⚠️' },
         ];
