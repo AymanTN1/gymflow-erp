@@ -8,6 +8,7 @@ import AdminPlanning from './pages/admin/AdminPlanning';
 import ReceptionDashboard from './pages/reception/ReceptionDashboard';
 import ReceptionClients from './pages/reception/ReceptionClients';
 import ReceptionPointageCours from './pages/reception/ReceptionPointageCours';
+import ReceptionPos from './pages/reception/ReceptionPos';
 import CoachDashboard from './pages/coach/CoachDashboard';
 import ClientDashboard from './pages/client/ClientDashboard';
 import ClientBooking from './pages/client/ClientBooking';
@@ -27,6 +28,7 @@ function App() {
         <Route path="/reception" element={<ReceptionDashboard />} />
         <Route path="/reception/clients" element={<ReceptionClients />} />
         <Route path="/reception/pointage-cours" element={<ReceptionPointageCours />} />
+        <Route path="/reception/pos" element={<ReceptionPos />} />
         <Route path="/coach/*" element={<CoachDashboard />} />
         <Route path="/client" element={<ClientDashboard />} />
         <Route path="/client/booking" element={<ClientBooking />} />
