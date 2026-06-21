@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction> findByType(String type);
+    List<Transaction> findByDateTransactionBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+    List<Transaction> findAllByOrderByDateTransactionDesc();
 }

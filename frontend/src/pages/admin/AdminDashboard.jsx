@@ -4,7 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function AdminDashboard() {
   const [transactions, setTransactions] = useState([]);
-
+  const [chartData, setChartData] = useState([]);
   const [activeCount, setActiveCount] = useState(0);
 
   useEffect(() => {
@@ -12,6 +12,11 @@ export default function AdminDashboard() {
       .then(res => res.json())
       .then(data => setTransactions(data))
       .catch(err => console.error(err));
+
+    fetch('http://localhost:8080/api/reports/evolution')
+      .then(res => res.json())
+      .then(data => setChartData(data))
+      .catch(err => console.error("Erreur fetch rapports:", err));
 
     fetch('http://localhost:8080/api/checkin/active-count')
       .then(res => res.json())
@@ -34,16 +39,6 @@ export default function AdminDashboard() {
   const expenses = transactions.filter(t => t.type === 'EXPENSE').reduce((a, b) => a + b.montant, 0);
   const net = incomes - expenses;
 
-  // Mock data for the chart (in a real app, this would be grouped by month from DB)
-  const chartData = [
-    { name: 'Jan', revenus: 85000, depenses: 40000 },
-    { name: 'Fév', revenus: 92000, depenses: 42000 },
-    { name: 'Mar', revenus: 88000, depenses: 39000 },
-    { name: 'Avr', revenus: 95000, depenses: 45000 },
-    { name: 'Mai', revenus: 110000, depenses: 48000 },
-    { name: 'Juin', revenus: 124500, depenses: expenses },
-  ];
-
   return (
     <ErpLayout role="ADMIN">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -53,7 +48,14 @@ export default function AdminDashboard() {
             <span className="me-2">🔴 LIVE</span> {activeCount} personnes en salle
           </div>
         </div>
-        <button className="btn btn-gold px-4">Exporter le Rapport</button>
+        <div className="d-flex gap-2">
+          <a href="http://localhost:8080/api/reports/export/csv" className="btn btn-outline-light px-3 d-flex align-items-center gap-2" download>
+            <span>📊</span> CSV (Excel)
+          </a>
+          <a href="http://localhost:8080/api/reports/export/pdf" className="btn btn-gold px-3 d-flex align-items-center gap-2" download target="_blank" rel="noreferrer">
+            <span>📄</span> PDF
+          </a>
+        </div>
       </div>
 
       <div className="row g-4 mb-4">
@@ -102,14 +104,14 @@ export default function AdminDashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                  <XAxis dataKey="name" stroke="#888888" tick={{fill: '#888888'}} />
+                  <XAxis dataKey="month" stroke="#888888" tick={{fill: '#888888'}} />
                   <YAxis stroke="#888888" tick={{fill: '#888888'}} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: 'rgba(18,18,18,0.9)', borderRadius: '8px', border: '1px solid #FFCC00' }}
                     itemStyle={{ fontWeight: 'bold' }}
                   />
-                  <Area type="monotone" dataKey="revenus" stroke="#FFCC00" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenus)" name="Revenus (DH)" />
-                  <Area type="monotone" dataKey="depenses" stroke="#ff4d4d" strokeWidth={3} fillOpacity={1} fill="url(#colorDepenses)" name="Dépenses (DH)" />
+                  <Area type="monotone" dataKey="Revenus" stroke="#FFCC00" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenus)" name="Revenus (DH)" />
+                  <Area type="monotone" dataKey="Dépenses" stroke="#ff4d4d" strokeWidth={3} fillOpacity={1} fill="url(#colorDepenses)" name="Dépenses (DH)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
