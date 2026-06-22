@@ -12,6 +12,7 @@ import ReceptionPos from './pages/reception/ReceptionPos';
 import CoachDashboard from './pages/coach/CoachDashboard';
 import ClientDashboard from './pages/client/ClientDashboard';
 import ClientBooking from './pages/client/ClientBooking';
+import ClientInvoices from './pages/client/ClientInvoices';
 import './index.css';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
         <Route path="/coach/*" element={<CoachDashboard />} />
         <Route path="/client" element={<ClientDashboard />} />
         <Route path="/client/booking" element={<ClientBooking />} />
+        <Route path="/client/invoices" element={<ClientInvoices />} />
       </Routes>
     </BrowserRouter>
   );

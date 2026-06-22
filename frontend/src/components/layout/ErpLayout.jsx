@@ -31,6 +31,7 @@ export default function ErpLayout({ children, role }) {
         return [
           { path: '/client', label: 'Mon Compte', icon: '👤' },
           { path: '/client/booking', label: 'Réservations', icon: '🗓️' },
+          { path: '/client/invoices', label: 'Mes Factures', icon: '📄' },
         ];
       default:
         return [];
