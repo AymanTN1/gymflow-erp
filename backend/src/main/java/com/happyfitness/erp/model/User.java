@@ -20,9 +20,13 @@ public class User {
     private String motDePasse;
     private String role; // SUPER_ADMIN, RECEPTION, COACH, CLIENT
     private LocalDateTime dateCreation;
+    private Double salaireBase;         // Salaire fixe mensuel en DH
+    private Double commissionParCours;  // Commission par cours donné (coachs)
 
     public User() {
         this.dateCreation = LocalDateTime.now();
+        this.salaireBase = 0.0;
+        this.commissionParCours = 0.0;
     }
 
     public User(String nom, String email, String motDePasse, String role) {
@@ -31,6 +35,8 @@ public class User {
         this.motDePasse = motDePasse;
         this.role = role;
         this.dateCreation = LocalDateTime.now();
+        this.salaireBase = 0.0;
+        this.commissionParCours = 0.0;
     }
 
     public Long getId() {
@@ -80,4 +86,10 @@ public class User {
     public void setDateCreation(LocalDateTime dateCreation) {
         this.dateCreation = dateCreation;
     }
+
+    public Double getSalaireBase() { return salaireBase; }
+    public void setSalaireBase(Double salaireBase) { this.salaireBase = salaireBase; }
+
+    public Double getCommissionParCours() { return commissionParCours; }
+    public void setCommissionParCours(Double commissionParCours) { this.commissionParCours = commissionParCours; }
 }
