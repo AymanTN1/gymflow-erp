@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
 export default function ReceptionDashboard() {
-  const [scanStatus, setScanStatus] = useState(null); // { status: 'SUCCESS'|'WARNING'|'DANGER', message: '', clientName: '' }
+  const [scanStatus, setScanStatus] = useState(null);
   const [activeCount, setActiveCount] = useState(0);
+  const [staffChecked, setStaffChecked] = useState(null); // { type, timestamp }
+  const [checkMessage, setCheckMessage] = useState(null);
+  const STAFF_USER_ID = 2; // Simule l'ID du réceptionniste connecté
 
   useEffect(() => {
     // Initial fetch for count
@@ -40,6 +43,35 @@ export default function ReceptionDashboard() {
     };
   }, []);
 
+  // Vérifier le pointage du jour
+  useEffect(() => {
+    fetch(`http://localhost:8080/api/rh/attendance/user/${STAFF_USER_ID}`)
+      .then(r => r.json())
+      .then(data => {
+        const today = new Date().toISOString().split('T')[0];
+        const todayEntries = data.filter(a => a.date === today);
+        if (todayEntries.length > 0) {
+          const last = todayEntries[todayEntries.length - 1];
+          setStaffChecked({ type: last.type, timestamp: last.timestamp });
+        }
+      }).catch(() => {});
+  }, []);
+
+  const handleStaffCheckin = async (type) => {
+    try {
+      const res = await fetch('http://localhost:8080/api/rh/attendance/checkin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: STAFF_USER_ID, type })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStaffChecked({ type, timestamp: data.timestamp });
+        setCheckMessage({ type: 'success', text: data.message });
+        setTimeout(() => setCheckMessage(null), 4000);
+      }
+    } catch (err) { setCheckMessage({ type: 'danger', text: 'Erreur de connexion.' }); }
+  };
+
   return (
     <ErpLayout role="RECEPTION">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -51,6 +83,36 @@ export default function ReceptionDashboard() {
         </div>
         <button className="btn btn-gold px-4 py-2">Nouvelle Inscription</button>
       </div>
+
+      {/* WIDGET POINTAGE STAFF */}
+      <div className="card-premium p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3" style={{ borderLeft: '4px solid var(--accent-gold)' }}>
+        <div className="d-flex align-items-center gap-3">
+          <span className="fs-3">⏰</span>
+          <div>
+            <div className="fw-bold">Pointage du Staff</div>
+            {staffChecked ? (
+              <span className="text-muted small">
+                Dernier pointage : <span className={staffChecked.type === 'IN' ? 'text-success' : 'text-danger'}>
+                  {staffChecked.type === 'IN' ? '🟢 Arrivée' : '🔴 Départ'}
+                </span> à {new Date(staffChecked.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            ) : (
+              <span className="text-warning small">Vous n'avez pas encore pointé aujourd'hui.</span>
+            )}
+          </div>
+        </div>
+        <div className="d-flex gap-2">
+          <button className="btn btn-success px-4 d-flex align-items-center gap-2"
+            onClick={() => handleStaffCheckin('IN')}>
+            🟢 Arrivée
+          </button>
+          <button className="btn btn-outline-danger px-4 d-flex align-items-center gap-2"
+            onClick={() => handleStaffCheckin('OUT')}>
+            🔴 Départ
+          </button>
+        </div>
+      </div>
+      {checkMessage && <div className={`alert alert-${checkMessage.type} py-2 mb-3`}>{checkMessage.text}</div>}
 
       <div className="row g-4 mb-4">
         {/* Module Pointage Réel (SSE) */}
