@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -42,21 +43,21 @@ export default function ClientBooking() {
 
   const fetchPlanning = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/courses/planning');
+      const res = await apiFetch('http://localhost:8080/api/courses/planning');
       if (res.ok) setPlanning(await res.json());
     } catch (err) { console.error(err); }
   };
 
   const fetchMyReservations = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/api/courses/reservations/client/${CLIENT_ID}`);
+      const res = await apiFetch(`http://localhost:8080/api/courses/reservations/client/${CLIENT_ID}`);
       if (res.ok) setMyReservations(await res.json());
     } catch (err) { console.error(err); }
   };
 
   const fetchPlaces = async (courseId, date) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/courses/${courseId}/places-disponibles?date=${date}`);
+      const res = await apiFetch(`http://localhost:8080/api/courses/${courseId}/places-disponibles?date=${date}`);
       if (res.ok) {
         const data = await res.json();
         setPlacesInfo(prev => ({ ...prev, [`${courseId}_${date}`]: data }));
@@ -76,7 +77,7 @@ export default function ClientBooking() {
   const handleReserver = async (courseId) => {
     setMessage(null);
     try {
-      const res = await fetch(`http://localhost:8080/api/courses/${courseId}/reserver`, {
+      const res = await apiFetch(`http://localhost:8080/api/courses/${courseId}/reserver`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientId: CLIENT_ID, date: selectedDate })
@@ -96,7 +97,7 @@ export default function ClientBooking() {
 
   const handleAnnuler = async (resId, courseId) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/courses/reservations/${resId}/annuler`, { method: 'POST' });
+      const res = await apiFetch(`http://localhost:8080/api/courses/reservations/${resId}/annuler`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         setMessage({ type: 'info', text: 'Réservation annulée.' });

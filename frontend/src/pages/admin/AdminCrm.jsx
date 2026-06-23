@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -6,7 +7,7 @@ export default function AdminCrm() {
 
   const fetchWinBackData = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/crm/winback');
+      const res = await apiFetch('http://localhost:8080/api/crm/winback');
       if (res.ok) {
         const data = await res.json();
         setWinBackClients(data);

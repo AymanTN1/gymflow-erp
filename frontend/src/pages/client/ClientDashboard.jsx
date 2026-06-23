@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import ErpLayout from '../../components/layout/ErpLayout';
@@ -8,7 +9,7 @@ export default function ClientDashboard() {
   const [activeCount, setActiveCount] = useState(0);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/checkin/active-count')
+    apiFetch('http://localhost:8080/api/checkin/active-count')
       .then(res => res.json())
       .then(data => setActiveCount(data.count))
       .catch(err => console.error(err));
@@ -28,7 +29,7 @@ export default function ClientDashboard() {
     if (text) {
       setScanning(false);
       try {
-        const res = await fetch('http://localhost:8080/api/checkin/scan', {
+        const res = await apiFetch('http://localhost:8080/api/checkin/scan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: text, clientId: "1" }) // Simule Client Karim Tazi

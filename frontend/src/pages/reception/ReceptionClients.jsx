@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -19,7 +20,7 @@ export default function ReceptionClients() {
 
   const fetchClients = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/reception/clients');
+      const res = await apiFetch('http://localhost:8080/api/reception/clients');
       if (res.ok) {
         const data = await res.json();
         setClients(data);
@@ -31,7 +32,7 @@ export default function ReceptionClients() {
 
   const fetchMemberships = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/reception/memberships');
+      const res = await apiFetch('http://localhost:8080/api/reception/memberships');
       if (res.ok) {
         const data = await res.json();
         setMemberships(data);
@@ -49,7 +50,7 @@ export default function ReceptionClients() {
   const handleCreateClient = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8080/api/reception/clients', {
+      const res = await apiFetch('http://localhost:8080/api/reception/clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newClient)
@@ -82,7 +83,7 @@ export default function ReceptionClients() {
     setVerifyError(null);
     
     try {
-      const res = await fetch(`http://localhost:8080/api/reception/clients/${pendingClient.id}/verify-email`, {
+      const res = await apiFetch(`http://localhost:8080/api/reception/clients/${pendingClient.id}/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: verificationCode })
@@ -108,7 +109,7 @@ export default function ReceptionClients() {
     setVerifyMessage(null);
     setVerifyError(null);
     try {
-      const res = await fetch(`http://localhost:8080/api/reception/clients/${pendingClient.id}/resend-code`, {
+      const res = await apiFetch(`http://localhost:8080/api/reception/clients/${pendingClient.id}/resend-code`, {
         method: 'POST'
       });
       const data = await res.json();
@@ -125,7 +126,7 @@ export default function ReceptionClients() {
   const handleCreateMembership = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8080/api/reception/memberships', {
+      const res = await apiFetch('http://localhost:8080/api/reception/memberships', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newMembership)

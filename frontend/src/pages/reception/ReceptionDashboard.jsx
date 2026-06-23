@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -10,7 +11,7 @@ export default function ReceptionDashboard() {
 
   useEffect(() => {
     // Initial fetch for count
-    fetch('http://localhost:8080/api/checkin/active-count')
+    apiFetch('http://localhost:8080/api/checkin/active-count')
       .then(res => res.json())
       .then(data => setActiveCount(data.count))
       .catch(err => console.error("Erreur fetch count:", err));
@@ -45,7 +46,7 @@ export default function ReceptionDashboard() {
 
   // Vérifier le pointage du jour
   useEffect(() => {
-    fetch(`http://localhost:8080/api/rh/attendance/user/${STAFF_USER_ID}`)
+    apiFetch(`http://localhost:8080/api/rh/attendance/user/${STAFF_USER_ID}`)
       .then(r => r.json())
       .then(data => {
         const today = new Date().toISOString().split('T')[0];
@@ -59,7 +60,7 @@ export default function ReceptionDashboard() {
 
   const handleStaffCheckin = async (type) => {
     try {
-      const res = await fetch('http://localhost:8080/api/rh/attendance/checkin', {
+      const res = await apiFetch('http://localhost:8080/api/rh/attendance/checkin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: STAFF_USER_ID, type })
       });

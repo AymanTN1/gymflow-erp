@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -10,8 +11,8 @@ export default function ClientInvoices() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`http://localhost:8080/api/client/${CLIENT_ID}/invoices`).then(r => r.json()),
-      fetch(`http://localhost:8080/api/client/${CLIENT_ID}/profile`).then(r => r.json())
+      apiFetch(`http://localhost:8080/api/client/${CLIENT_ID}/invoices`).then(r => r.json()),
+      apiFetch(`http://localhost:8080/api/client/${CLIENT_ID}/profile`).then(r => r.json())
     ]).then(([inv, prof]) => {
       setInvoices(inv);
       setProfile(prof);

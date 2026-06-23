@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -19,9 +20,9 @@ export default function AdminFinances() {
   const fetchData = async () => {
     try {
       const [txRes, prRes, usersRes] = await Promise.all([
-        fetch('http://localhost:8080/api/finances/transactions'),
-        fetch('http://localhost:8080/api/finances/payrolls'),
-        fetch('http://localhost:8080/api/users')
+        apiFetch('http://localhost:8080/api/finances/transactions'),
+        apiFetch('http://localhost:8080/api/finances/payrolls'),
+        apiFetch('http://localhost:8080/api/users')
       ]);
       if (txRes.ok) setTransactions(await txRes.json());
       if (prRes.ok) setPayrolls(await prRes.json());
@@ -37,7 +38,7 @@ export default function AdminFinances() {
   const handleTxSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8080/api/finances/transactions', {
+      const res = await apiFetch('http://localhost:8080/api/finances/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...txForm, montant: parseFloat(txForm.montant) })
@@ -62,7 +63,7 @@ export default function AdminFinances() {
     const selectedUser = users.find(u => u.id.toString() === prForm.employeId);
     
     try {
-      const res = await fetch('http://localhost:8080/api/finances/payrolls', {
+      const res = await apiFetch('http://localhost:8080/api/finances/payrolls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -16,14 +17,14 @@ export default function AdminPlanning() {
 
   const fetchPlanning = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/courses/planning');
+      const res = await apiFetch('http://localhost:8080/api/courses/planning');
       if (res.ok) setPlanning(await res.json());
     } catch (err) { console.error(err); }
   };
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/courses');
+      const res = await apiFetch('http://localhost:8080/api/courses');
       if (res.ok) setCourses(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -41,7 +42,7 @@ export default function AdminPlanning() {
     const method = editingCourse ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
@@ -67,7 +68,7 @@ export default function AdminPlanning() {
   const handleDelete = async (id) => {
     if (!confirm('Supprimer ce cours ?')) return;
     try {
-      await fetch(`http://localhost:8080/api/courses/${id}`, { method: 'DELETE' });
+      await apiFetch(`http://localhost:8080/api/courses/${id}`, { method: 'DELETE' });
       fetchPlanning();
       fetchCourses();
     } catch (err) { console.error(err); }

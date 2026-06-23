@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -20,9 +21,9 @@ export default function ReceptionPos() {
   const fetchAll = async () => {
     try {
       const [pRes, aRes, sRes] = await Promise.all([
-        fetch('http://localhost:8080/api/pos/products'),
-        fetch('http://localhost:8080/api/pos/products/alertes'),
-        fetch('http://localhost:8080/api/pos/sales/today')
+        apiFetch('http://localhost:8080/api/pos/products'),
+        apiFetch('http://localhost:8080/api/pos/products/alertes'),
+        apiFetch('http://localhost:8080/api/pos/sales/today')
       ]);
       if (pRes.ok) setProducts(await pRes.json());
       if (aRes.ok) setAlerts(await aRes.json());
@@ -60,7 +61,7 @@ export default function ReceptionPos() {
     setMessage(null);
     for (const item of cart) {
       try {
-        const res = await fetch('http://localhost:8080/api/pos/sell', {
+        const res = await apiFetch('http://localhost:8080/api/pos/sell', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ productId: item.product.id, quantite: item.quantite, vendeur: 'Réception' })
@@ -85,7 +86,7 @@ export default function ReceptionPos() {
   const handleAddProduct = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8080/api/pos/products', {
+      const res = await apiFetch('http://localhost:8080/api/pos/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProduct)
@@ -101,7 +102,7 @@ export default function ReceptionPos() {
   // Réapprovisionner
   const handleRestock = async (id) => {
     try {
-      await fetch(`http://localhost:8080/api/pos/products/${id}/restock`, {
+      await apiFetch(`http://localhost:8080/api/pos/products/${id}/restock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quantite: parseInt(restockQty) })

@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -16,9 +17,9 @@ export default function AdminRh() {
   const fetchAll = async () => {
     try {
       const [sRes, pRes, aRes] = await Promise.all([
-        fetch('http://localhost:8080/api/rh/staff'),
-        fetch(`http://localhost:8080/api/rh/payroll?month=${selectedMonth}`),
-        fetch('http://localhost:8080/api/rh/attendance')
+        apiFetch('http://localhost:8080/api/rh/staff'),
+        apiFetch(`http://localhost:8080/api/rh/payroll?month=${selectedMonth}`),
+        apiFetch('http://localhost:8080/api/rh/attendance')
       ]);
       if (sRes.ok) setStaff(await sRes.json());
       if (pRes.ok) setPayroll(await pRes.json());
@@ -32,7 +33,7 @@ export default function AdminRh() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8080/api/users', {
+      const res = await apiFetch('http://localhost:8080/api/users', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
@@ -47,7 +48,7 @@ export default function AdminRh() {
 
   const handleSaveCompensation = async (id) => {
     try {
-      await fetch(`http://localhost:8080/api/rh/staff/${id}/compensation`, {
+      await apiFetch(`http://localhost:8080/api/rh/staff/${id}/compensation`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm)
       });

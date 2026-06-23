@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 
@@ -19,7 +20,7 @@ export default function CoachDashboard() {
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/courses');
+      const res = await apiFetch('http://localhost:8080/api/courses');
       if (res.ok) {
         const courses = await res.json();
         const mine = courses.filter(c => c.coach === COACH_NAME);
@@ -32,7 +33,7 @@ export default function CoachDashboard() {
 
   const fetchReservations = async (courseId) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/courses/${courseId}/reservations?date=${todayDate}`);
+      const res = await apiFetch(`http://localhost:8080/api/courses/${courseId}/reservations?date=${todayDate}`);
       if (res.ok) setReservations(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -44,7 +45,7 @@ export default function CoachDashboard() {
 
   const handlePointer = async (resId, statut) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/courses/reservations/${resId}/pointer`, {
+      const res = await apiFetch(`http://localhost:8080/api/courses/reservations/${resId}/pointer`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ statut })
       });

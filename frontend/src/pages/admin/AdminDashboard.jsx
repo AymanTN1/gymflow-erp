@@ -1,3 +1,4 @@
+import { apiFetch } from '../../utils/api';
 import React, { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -8,17 +9,17 @@ export default function AdminDashboard() {
   const [activeCount, setActiveCount] = useState(0);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/finances/transactions')
+    apiFetch('http://localhost:8080/api/finances/transactions')
       .then(res => res.json())
       .then(data => setTransactions(data))
       .catch(err => console.error(err));
 
-    fetch('http://localhost:8080/api/reports/evolution')
+    apiFetch('http://localhost:8080/api/reports/evolution')
       .then(res => res.json())
       .then(data => setChartData(data))
       .catch(err => console.error("Erreur fetch rapports:", err));
 
-    fetch('http://localhost:8080/api/checkin/active-count')
+    apiFetch('http://localhost:8080/api/checkin/active-count')
       .then(res => res.json())
       .then(data => setActiveCount(data.count))
       .catch(err => console.error("Erreur fetch count:", err));
