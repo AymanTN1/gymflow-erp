@@ -79,6 +79,20 @@ public class EmailService {
         }
     }
 
+    public void sendBookingConfirmation(Client client, com.happyfitness.erp.model.Course course, java.time.LocalDate date) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(FROM_EMAIL);
+            helper.setTo(client.getEmail());
+            helper.setSubject("GymFlow - Confirmation de votre réservation");
+            helper.setText(buildBookingConfirmationHtml(client, course, date), true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Erreur lors de l'envoi de la confirmation de réservation", e);
+        }
+    }
+
     // ============================
     // HTML TEMPLATES (using String concatenation to avoid % issues)
     // ============================
@@ -166,6 +180,36 @@ public class EmailService {
             + "    <div style='margin: 30px 0;'>"
             + "      <a href='#' style='background: linear-gradient(135deg, #FFCC00 0%, #E6B800 100%); color: #000; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px;'>Renouveler Mon Abonnement</a>"
             + "    </div>"
+            + "  </div>"
+            + "  <div style='background: #f9f9f9; padding: 15px; text-align: center; font-size: 11px; color: #aaa;'>"
+            + "    &copy; 2026 GymFlow - Tous droits réservés"
+            + "  </div>"
+            + "</div>"
+            + "</body></html>";
+    }
+
+    private String buildBookingConfirmationHtml(Client client, com.happyfitness.erp.model.Course course, java.time.LocalDate date) {
+        String formattedDate = date.format(DATE_FMT);
+        String heureDebut = course.getHeureDebut().substring(0, 5);
+        String heureFin = course.getHeureFin().substring(0, 5);
+
+        return "<!DOCTYPE html>"
+            + "<html><body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>"
+            + "<div style='max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);'>"
+            + "  <div style='background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 30px; text-align: center;'>"
+            + "    <h1 style='color: #FFCC00; margin: 0; font-size: 28px;'>GymFlow</h1>"
+            + "  </div>"
+            + "  <div style='padding: 30px; text-align: center;'>"
+            + "    <h2 style='color: #28a745;'>✅ Réservation confirmée !</h2>"
+            + "    <p style='color: #666;'>Bonjour <strong>" + client.getNomComplet() + "</strong>,</p>"
+            + "    <p style='color: #666;'>Votre place pour le cours de <strong>" + course.getNom() + "</strong> est réservée.</p>"
+            + "    <div style='background: #f9f9f9; border-left: 4px solid #FFCC00; padding: 15px; margin: 20px 0; text-align: left;'>"
+            + "      <p style='margin: 5px 0;'>📅 Date : <strong>" + formattedDate + "</strong></p>"
+            + "      <p style='margin: 5px 0;'>⏰ Heure : <strong>" + heureDebut + " - " + heureFin + "</strong></p>"
+            + "      <p style='margin: 5px 0;'>📍 Salle : <strong>" + (course.getSalle() != null ? course.getSalle() : "Principale") + "</strong></p>"
+            + "      <p style='margin: 5px 0;'>🏋️ Coach : <strong>" + course.getCoach() + "</strong></p>"
+            + "    </div>"
+            + "    <p style='color: #999; font-size: 13px;'>N'oubliez pas votre serviette et bouteille d'eau !</p>"
             + "  </div>"
             + "  <div style='background: #f9f9f9; padding: 15px; text-align: center; font-size: 11px; color: #aaa;'>"
             + "    &copy; 2026 GymFlow - Tous droits réservés"

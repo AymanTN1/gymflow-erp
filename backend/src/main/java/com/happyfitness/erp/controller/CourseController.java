@@ -141,6 +141,9 @@ public class CourseController {
         ));
     }
 
+    @Autowired
+    private com.happyfitness.erp.service.EmailService emailService;
+
     @PostMapping("/{courseId}/reserver")
     public ResponseEntity<?> reserverCours(@PathVariable Long courseId, @RequestBody Map<String, Object> payload) {
         Long clientId = Long.valueOf(payload.get("clientId").toString());
@@ -170,6 +173,17 @@ public class CourseController {
         reservation.setCourseId(courseId);
         reservation.setDateReservation(date);
         reservationRepository.save(reservation);
+
+        // Envoi de l'email de confirmation de manière asynchrone (non-bloquant)
+        new Thread(() -> {
+            clientRepository.findById(clientId).ifPresent(client -> {
+                try {
+                    emailService.sendBookingConfirmation(client, course, date);
+                } catch (Exception e) {
+                    System.err.println("Erreur email: " + e.getMessage());
+                }
+            });
+        }).start();
         
         return ResponseEntity.ok(Map.of("success", true, "message", "Réservation confirmée ! 🎉"));
     }
