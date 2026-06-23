@@ -1,29 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        // Redirection basée sur le rôle fictif du scaffolding
-        navigate(data.redirect);
-      } else {
-        setError(data.message || 'Erreur de connexion');
-      }
-    } catch (err) {
-      setError('Impossible de joindre le serveur.');
+    setError('');
+    
+    const result = await login(email, password);
+    if (!result.success) {
+      setError(result.message);
     }
   };
 

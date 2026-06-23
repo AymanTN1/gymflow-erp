@@ -1,26 +1,28 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function ErpLayout({ children, role }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const getLinks = () => {
     switch (role) {
+      case 'SUPER_ADMIN':
       case 'ADMIN':
         return [
-          { path: '/admin', label: 'Dashboard MRR', icon: '📊' },
-          { path: '/admin/finances', label: 'Grand Livre', icon: '💰' },
-          { path: '/admin/planning', label: 'Planning Cours', icon: '📅' },
-          { path: '/admin/rh', label: 'Ressources Humaines', icon: '👥' },
-          { path: '/admin/crm', label: 'Win-Back CRM', icon: '🎯' },
+          { path: '/admin', label: 'Dashboard', icon: '📊' },
+          { path: '/admin/planning', label: 'Planning', icon: '📅' },
+          { path: '/admin/finances', label: 'Finances', icon: '💰' },
+          { path: '/admin/crm', label: 'CRM / Membres', icon: '👥' },
+          { path: '/admin/rh', label: 'RH', icon: '👔' },
         ];
       case 'RECEPTION':
         return [
-          { path: '/reception', label: 'Pointage QR', icon: '📷' },
-          { path: '/reception/clients', label: 'Gestion Clients', icon: '👥' },
-          { path: '/reception/pointage-cours', label: 'Pointage Cours', icon: '📋' },
-          { path: '/reception/pos', label: 'Point de Vente', icon: '💳' },
-          { path: '/reception/debts', label: 'Gestion Dettes', icon: '⚠️' },
+          { path: '/reception', label: 'Accueil & Pointage', icon: '🏠' },
+          { path: '/reception/clients', label: 'Clients & Abos', icon: '👥' },
+          { path: '/reception/pointage-cours', label: 'Cours', icon: '📅' },
+          { path: '/reception/pos', label: 'Boutique', icon: '🛒' },
         ];
       case 'COACH':
         return [
@@ -41,7 +43,7 @@ export default function ErpLayout({ children, role }) {
   const links = getLinks();
 
   const handleLogout = () => {
-    navigate('/login');
+    logout();
   };
 
   return (
