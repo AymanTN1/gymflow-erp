@@ -24,6 +24,9 @@ public class DataSeeder implements CommandLineRunner {
     @Autowired
     private PayrollRepository payrollRepository;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder encoder;
+
     @Override
     public void run(String... args) throws Exception {
         // Seulement injecter des données si la base de données est vide
@@ -33,7 +36,7 @@ public class DataSeeder implements CommandLineRunner {
             User admin = new User();
             admin.setNom("M. Ayman (Propriétaire)");
             admin.setEmail("admin@happyfitness.ma");
-            admin.setMotDePasse("admin123");
+            admin.setMotDePasse(encoder.encode("admin123"));
             admin.setRole("ADMIN");
             userRepository.save(admin);
 
@@ -41,14 +44,14 @@ public class DataSeeder implements CommandLineRunner {
             User coach1 = new User();
             coach1.setNom("Youssef (Coach)");
             coach1.setEmail("youssef@happyfitness.ma");
-            coach1.setMotDePasse("coach123");
+            coach1.setMotDePasse(encoder.encode("coach123"));
             coach1.setRole("COACH");
             userRepository.save(coach1);
 
             User reception = new User();
             reception.setNom("Sara (Réception)");
             reception.setEmail("sara@happyfitness.ma");
-            reception.setMotDePasse("rec123");
+            reception.setMotDePasse(encoder.encode("rec123"));
             reception.setRole("RECEPTION");
             userRepository.save(reception);
 

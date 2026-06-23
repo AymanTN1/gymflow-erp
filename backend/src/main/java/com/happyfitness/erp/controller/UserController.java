@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.List;
 
 @RestController
@@ -16,6 +18,9 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder encoder;
+
     @GetMapping
     public List<User> getAllUsers(@RequestParam(required = false) String role) {
         if (role != null) {
@@ -25,7 +30,11 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            return ResponseEntity.badRequest().body("L'email est déjà utilisé !");
+        }
+        user.setMotDePasse(encoder.encode(user.getMotDePasse()));
         User savedUser = userRepository.save(user);
         return ResponseEntity.ok(savedUser);
     }
