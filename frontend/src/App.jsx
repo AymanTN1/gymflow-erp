@@ -15,6 +15,9 @@ import CoachDashboard from './pages/coach/CoachDashboard';
 import ClientDashboard from './pages/client/ClientDashboard';
 import ClientBooking from './pages/client/ClientBooking';
 import ClientInvoices from './pages/client/ClientInvoices';
+import ClientPayment from './pages/client/ClientPayment';
+import PaymentSuccess from './pages/client/PaymentSuccess';
+import PaymentCancel from './pages/client/PaymentCancel';
 import './index.css';
 
 function App() {
@@ -45,6 +48,9 @@ function App() {
           <Route path="/client" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientDashboard /></PrivateRoute>} />
           <Route path="/client/booking" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientBooking /></PrivateRoute>} />
           <Route path="/client/invoices" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientInvoices /></PrivateRoute>} />
+          <Route path="/client/payment" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientPayment /></PrivateRoute>} />
+          <Route path="/client/payment-success" element={<PrivateRoute allowedRoles={['CLIENT']}><PaymentSuccess /></PrivateRoute>} />
+          <Route path="/client/payment-cancel" element={<PrivateRoute allowedRoles={['CLIENT']}><PaymentCancel /></PrivateRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
