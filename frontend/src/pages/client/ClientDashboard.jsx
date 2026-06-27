@@ -106,6 +106,15 @@ export default function ClientDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Bloc CTA Renouvellement */}
+      <div className="card-premium p-4 text-center" style={{ background: 'linear-gradient(135deg, rgba(255,204,0,0.1) 0%, rgba(255,204,0,0.02) 100%)', border: '1px solid rgba(255,204,0,0.2)' }}>
+        <h5 className="text-gold fw-bold mb-2">💳 Payer ou Renouveler en Ligne</h5>
+        <p className="text-muted small mb-3">Réglez votre abonnement en quelques clics, sans passer par la réception.</p>
+        <a href="/client/payment" className="btn btn-gold px-5 py-2 fw-bold" style={{ borderRadius: '12px' }}>
+          Voir les Formules & Payer
+        </a>
+      </div>
     </ErpLayout>
   );
 }

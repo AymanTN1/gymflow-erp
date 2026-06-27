@@ -23,6 +23,7 @@ services:
       DB_PASS: postgres
       MAIL_HOST: mailhog
       MAIL_PORT: 1025
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_VOTRE_CLE_SECRETE_ICI}
     ports:
       - "8080:8080"
     depends_on:
