@@ -23,3 +23,9 @@ spring:
           auth: false
           starttls:
             enable: false
+
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_VOTRE_CLE_SECRETE_ICI}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_test}
+  success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/client/payment-success}
+  cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/client/payment-cancel}
