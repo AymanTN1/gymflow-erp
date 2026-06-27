@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 export default function ErpLayout({ children, role }) {
   const location = useLocation();
@@ -83,8 +84,8 @@ export default function ErpLayout({ children, role }) {
         {/* Mobile Header (Mobile Only) */}
         <div className="d-md-none p-3 border-bottom border-warning border-opacity-25 d-flex justify-content-between align-items-center" style={{ backgroundColor: 'rgba(13, 13, 13, 0.9)', position: 'sticky', top: 0, zIndex: 1000 }}>
           <h5 className="fw-bold mb-0 text-white"><span className="text-gold">GymFlow</span></h5>
-          <div className="d-flex align-items-center gap-2">
-            <span className="badge bg-warning text-dark">{role}</span>
+          <div className="d-flex align-items-center gap-3">
+            <NotificationBell role={role} />
             <div className="bg-gold rounded-circle d-flex justify-content-center align-items-center fw-bold text-dark" style={{ width: '30px', height: '30px', fontSize: '12px', backgroundColor: 'var(--accent-gold)' }}>
               {role.substring(0, 1)}
             </div>
@@ -94,8 +95,9 @@ export default function ErpLayout({ children, role }) {
         {/* Main Content */}
         <div className="flex-grow-1 d-flex flex-column w-100" style={{ paddingBottom: role === 'CLIENT' ? '70px' : '0' }}>
           <header className="p-3 border-bottom border-warning border-opacity-25 d-none d-md-flex justify-content-end align-items-center" style={{ backgroundColor: 'rgba(13, 13, 13, 0.8)', backdropFilter: 'blur(10px)' }}>
-            <div className="d-flex align-items-center gap-3">
+            <div className="d-flex align-items-center gap-4">
               <span className="text-muted small">Status: <span className="text-success">Connecté</span></span>
+              <NotificationBell role={role} />
               <div className="bg-gold rounded-circle d-flex justify-content-center align-items-center fw-bold text-dark" style={{ width: '40px', height: '40px', backgroundColor: 'var(--accent-gold)' }}>
                 {role.substring(0, 1)}
               </div>
