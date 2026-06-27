@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import PrivateRoute from './components/layout/PrivateRoute';
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -22,8 +23,9 @@ import './index.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
@@ -52,8 +54,9 @@ function App() {
           <Route path="/client/payment-success" element={<PrivateRoute allowedRoles={['CLIENT']}><PaymentSuccess /></PrivateRoute>} />
           <Route path="/client/payment-cancel" element={<PrivateRoute allowedRoles={['CLIENT']}><PaymentCancel /></PrivateRoute>} />
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

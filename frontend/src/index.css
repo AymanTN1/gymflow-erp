@@ -144,3 +144,94 @@ body, html {
     margin: 0; /* Ensures the page doesn't have ugly headers/footers */
   }
 }
+
+/* -------------------------------------
+ * LIGHT MODE STYLES
+ * ------------------------------------- */
+[data-theme="light"] {
+  --bg-dark: #F8F9FA;
+  --accent-gold: #E6B800; /* Plus foncé pour lisibilité */
+  --grid-line: rgba(0, 0, 0, 0.05);
+  --text-light: #212529;
+  --text-muted: #6C757D;
+}
+
+[data-theme="light"] body,
+[data-theme="light"] html {
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+}
+
+[data-theme="light"] .card-premium {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+[data-theme="light"] .card-premium:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08), 0 0 15px rgba(230, 184, 0, 0.15);
+  border-color: rgba(230, 184, 0, 0.4);
+}
+
+[data-theme="light"] .text-white {
+  color: var(--text-light) !important;
+}
+
+[data-theme="light"] .bg-dark {
+  background-color: #E9ECEF !important;
+  color: #212529 !important;
+}
+
+[data-theme="light"] .bg-theme-header {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="light"] .bg-theme-mobile {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-theme="light"] .border-secondary {
+  border-color: #DEE2E6 !important;
+}
+
+[data-theme="light"] .form-control-dark {
+  background-color: #FFFFFF;
+  border: 1px solid #CED4DA;
+  color: var(--text-light);
+}
+
+[data-theme="light"] .form-control-dark:focus {
+  background-color: #FFFFFF;
+  color: var(--text-light);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 0.25rem rgba(230, 184, 0, 0.15);
+}
+
+[data-theme="light"] .btn-outline-light {
+  color: #212529;
+  border-color: #CED4DA;
+}
+
+[data-theme="light"] .btn-outline-light:hover {
+  background-color: #E9ECEF;
+  color: #212529;
+}
+
+[data-theme="light"] .table-dark {
+  color: var(--text-light);
+  --bs-table-color: var(--text-light);
+  --bs-table-bg: transparent;
+  --bs-table-border-color: #DEE2E6;
+}
+
+[data-theme="light"] .table-hover tbody tr:hover td {
+  background-color: rgba(230, 184, 0, 0.1) !important;
+  color: var(--text-light) !important;
+}
+
+[data-theme="light"] .recharts-default-tooltip {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(230, 184, 0, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important;
+  color: #212529 !important;
+}

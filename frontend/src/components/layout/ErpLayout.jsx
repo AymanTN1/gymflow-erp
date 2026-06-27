@@ -1,11 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import NotificationBell from './NotificationBell';
 
 export default function ErpLayout({ children, role }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const getLinks = () => {
     switch (role) {
@@ -76,15 +78,22 @@ export default function ErpLayout({ children, role }) {
           
           <hr className="border-warning opacity-25" />
           
-          <button onClick={handleLogout} className="btn btn-outline-light w-100 text-start d-flex align-items-center gap-2">
+          <button onClick={toggleTheme} className="btn btn-outline-warning w-100 text-start d-flex align-items-center gap-2 mb-2">
+            <span>{theme === 'dark' ? '☀️' : '🌙'}</span> Mode {theme === 'dark' ? 'Clair' : 'Sombre'}
+          </button>
+          
+          <button onClick={handleLogout} className="btn btn-outline-danger w-100 text-start d-flex align-items-center gap-2">
             <span>🚪</span> Déconnexion
           </button>
         </div>
 
         {/* Mobile Header (Mobile Only) */}
-        <div className="d-md-none p-3 border-bottom border-warning border-opacity-25 d-flex justify-content-between align-items-center" style={{ backgroundColor: 'rgba(13, 13, 13, 0.9)', position: 'sticky', top: 0, zIndex: 1000 }}>
-          <h5 className="fw-bold mb-0 text-white"><span className="text-gold">GymFlow</span></h5>
+        <div className="d-md-none p-3 border-bottom border-warning border-opacity-25 d-flex justify-content-between align-items-center bg-theme-mobile" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
+          <h5 className="fw-bold mb-0 tech-text"><span className="text-gold">GymFlow</span></h5>
           <div className="d-flex align-items-center gap-3">
+            <button onClick={toggleTheme} className="btn btn-sm btn-outline-warning rounded-circle p-0" style={{ width: '30px', height: '30px' }}>
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <NotificationBell role={role} />
             <div className="bg-gold rounded-circle d-flex justify-content-center align-items-center fw-bold text-dark" style={{ width: '30px', height: '30px', fontSize: '12px', backgroundColor: 'var(--accent-gold)' }}>
               {role.substring(0, 1)}
@@ -94,9 +103,12 @@ export default function ErpLayout({ children, role }) {
 
         {/* Main Content */}
         <div className="flex-grow-1 d-flex flex-column w-100" style={{ paddingBottom: role === 'CLIENT' ? '70px' : '0' }}>
-          <header className="p-3 border-bottom border-warning border-opacity-25 d-none d-md-flex justify-content-end align-items-center" style={{ backgroundColor: 'rgba(13, 13, 13, 0.8)', backdropFilter: 'blur(10px)' }}>
+          <header className="p-3 border-bottom border-warning border-opacity-25 d-none d-md-flex justify-content-end align-items-center bg-theme-header" style={{ backdropFilter: 'blur(10px)' }}>
             <div className="d-flex align-items-center gap-4">
               <span className="text-muted small">Status: <span className="text-success">Connecté</span></span>
+              <button onClick={toggleTheme} className="btn btn-outline-warning rounded-circle p-0 d-flex justify-content-center align-items-center" style={{ width: '40px', height: '40px' }}>
+                {theme === 'dark' ? '☀️' : '🌙'}
+              </button>
               <NotificationBell role={role} />
               <div className="bg-gold rounded-circle d-flex justify-content-center align-items-center fw-bold text-dark" style={{ width: '40px', height: '40px', backgroundColor: 'var(--accent-gold)' }}>
                 {role.substring(0, 1)}
