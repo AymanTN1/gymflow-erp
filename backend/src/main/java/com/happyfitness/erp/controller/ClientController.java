@@ -100,4 +100,88 @@ public class ClientController {
 
         return ResponseEntity.ok(profile);
     }
+
+    // ============================
+    // STATISTIQUES AVANCÉES DU CLIENT
+    // ============================
+
+    @Autowired
+    private com.happyfitness.erp.repository.AttendanceRepository attendanceRepository;
+
+    @Autowired
+    private com.happyfitness.erp.repository.ReservationRepository reservationRepository;
+
+    @GetMapping("/{clientId}/stats")
+    public ResponseEntity<?> getClientStats(@PathVariable Long clientId) {
+        Client client = clientRepository.findById(clientId).orElse(null);
+        if (client == null) return ResponseEntity.notFound().build();
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        // 1. Visites du mois (attendances ce mois-ci)
+        java.time.LocalDateTime startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        java.time.LocalDateTime endOfMonth = now.withDayOfMonth(now.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59);
+        List<com.happyfitness.erp.model.Attendance> monthAttendances = attendanceRepository.findByClientIdAndCheckInTimeBetween(clientId, startOfMonth, endOfMonth);
+        int visitesCeMois = monthAttendances.size();
+
+        // 2. Total des visites (all time)
+        List<com.happyfitness.erp.model.Attendance> allAttendances = attendanceRepository.findByClientIdOrderByCheckInTimeDesc(clientId);
+        int totalVisites = allAttendances.size();
+
+        // 3. Streak de jours consécutifs
+        int streak = 0;
+        if (!allAttendances.isEmpty()) {
+            java.util.Set<java.time.LocalDate> visitDates = new java.util.TreeSet<>(java.util.Collections.reverseOrder());
+            for (com.happyfitness.erp.model.Attendance a : allAttendances) {
+                visitDates.add(a.getCheckInTime().toLocalDate());
+            }
+            java.time.LocalDate checkDate = java.time.LocalDate.now();
+            for (java.time.LocalDate d : visitDates) {
+                if (d.equals(checkDate) || d.equals(checkDate.minusDays(1))) {
+                    streak++;
+                    checkDate = d.minusDays(1);
+                } else if (d.isBefore(checkDate)) {
+                    break;
+                }
+            }
+        }
+
+        // 4. Cours suivis (réservations avec statut PRESENT)
+        List<com.happyfitness.erp.model.Reservation> reservations = reservationRepository.findByClientId(clientId);
+        long coursSuivis = reservations.stream().filter(r -> "PRESENT".equals(r.getStatut())).count();
+        long coursReserves = reservations.stream().filter(r -> !"ANNULEE".equals(r.getStatut())).count();
+
+        // 5. Historique des 6 derniers mois (pour le graphique)
+        List<Map<String, Object>> historiqueVisites = new java.util.ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            java.time.LocalDateTime moisDebut = now.minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+            java.time.LocalDateTime moisFin = moisDebut.plusMonths(1).minusSeconds(1);
+            List<com.happyfitness.erp.model.Attendance> moisAtt = attendanceRepository.findByClientIdAndCheckInTimeBetween(clientId, moisDebut, moisFin);
+            
+            String[] nomsDesMois = {"Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"};
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("mois", nomsDesMois[moisDebut.getMonthValue() - 1]);
+            entry.put("annee", moisDebut.getYear());
+            entry.put("visites", moisAtt.size());
+            historiqueVisites.add(entry);
+        }
+
+        // 6. Durée moyenne de session (si checkout disponible)
+        double dureeMoyenneMinutes = allAttendances.stream()
+                .filter(a -> a.getCheckOutTime() != null)
+                .mapToLong(a -> java.time.Duration.between(a.getCheckInTime(), a.getCheckOutTime()).toMinutes())
+                .average()
+                .orElse(0);
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("visitesCeMois", visitesCeMois);
+        stats.put("totalVisites", totalVisites);
+        stats.put("streak", streak);
+        stats.put("coursSuivis", coursSuivis);
+        stats.put("coursReserves", coursReserves);
+        stats.put("dureeMoyenneMinutes", Math.round(dureeMoyenneMinutes));
+        stats.put("historiqueVisites", historiqueVisites);
+
+        return ResponseEntity.ok(stats);
+    }
 }
