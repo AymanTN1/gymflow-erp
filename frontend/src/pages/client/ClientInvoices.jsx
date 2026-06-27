@@ -87,6 +87,20 @@ export default function ClientInvoices() {
         </div>
       </div>
 
+      {/* Bannière de renouvellement si abonnement expiré */}
+      {profile && !profile.abonnementActif && (
+        <div className="alert mb-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 p-4" 
+          style={{ backgroundColor: 'rgba(220,53,69,0.1)', border: '1px solid rgba(220,53,69,0.3)', borderRadius: '12px' }}>
+          <div>
+            <h6 className="fw-bold text-danger mb-1">⚠️ Votre abonnement a expiré</h6>
+            <p className="text-muted small mb-0">Renouvelez dès maintenant pour continuer à profiter de la salle.</p>
+          </div>
+          <a href="/client/payment" className="btn btn-gold px-4 py-2 fw-bold flex-shrink-0" style={{ borderRadius: '10px' }}>
+            💳 Renouveler
+          </a>
+        </div>
+      )}
+
       {/* Liste des factures */}
       {invoices.length === 0 ? (
         <div className="card-premium p-5 text-center">
