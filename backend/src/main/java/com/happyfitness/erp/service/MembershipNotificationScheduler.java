@@ -27,6 +27,9 @@ public class MembershipNotificationScheduler {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     // S'exécute tous les jours à 08h00 du matin
     // Pour les tests, on peut le faire tourner plus souvent si besoin, mais 08h00 est la norme.
     @Scheduled(cron = "0 0 8 * * *")
@@ -42,6 +45,7 @@ public class MembershipNotificationScheduler {
                 Client client = clientRepository.findById(membership.getClientId()).orElse(null);
                 if (client != null && client.getEmail() != null) {
                     emailService.sendMembershipExpiryWarning(client.getEmail(), client.getNomComplet(), targetDate);
+                    notificationService.sendNotification("RECEPTION", "L'abonnement de " + client.getNomComplet() + " expire dans 3 jours.", "WARNING");
                     count++;
                 }
             }

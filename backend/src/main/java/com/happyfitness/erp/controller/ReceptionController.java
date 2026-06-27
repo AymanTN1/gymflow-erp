@@ -7,6 +7,7 @@ import com.happyfitness.erp.repository.ClientRepository;
 import com.happyfitness.erp.repository.MembershipRepository;
 import com.happyfitness.erp.repository.TransactionRepository;
 import com.happyfitness.erp.service.EmailService;
+import com.happyfitness.erp.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,9 @@ public class ReceptionController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // --- CLIENTS ---
     
@@ -58,12 +62,17 @@ public class ReceptionController {
                 System.err.println("Erreur d'envoi email de vérification: " + e.getMessage());
             }
             
+            notificationService.sendNotification("SUPER_ADMIN", "Nouveau client inscrit : " + saved.getNomComplet(), "INFO");
+            
             return ResponseEntity.ok(saved);
         } else {
             // Pas d'email, on active directement
             client.setStatut("ACTIF");
             client.setEmailVerified(false);
             Client saved = clientRepository.save(client);
+            
+            notificationService.sendNotification("SUPER_ADMIN", "Nouveau client inscrit : " + saved.getNomComplet(), "INFO");
+            
             return ResponseEntity.ok(saved);
         }
     }
