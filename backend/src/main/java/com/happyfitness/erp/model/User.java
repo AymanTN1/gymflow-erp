@@ -23,6 +23,9 @@ public class User {
     private Double salaireBase;         // Salaire fixe mensuel en DH
     private Double commissionParCours;  // Commission par cours donné (coachs)
 
+    @jakarta.persistence.Column(name = "photo_url")
+    private String photoUrl;
+
     public User() {
         this.dateCreation = LocalDateTime.now();
         this.salaireBase = 0.0;
@@ -92,4 +95,7 @@ public class User {
 
     public Double getCommissionParCours() { return commissionParCours; }
     public void setCommissionParCours(Double commissionParCours) { this.commissionParCours = commissionParCours; }
+
+    public String getPhotoUrl() { return photoUrl; }
+    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
 }

@@ -76,6 +76,8 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/payments/plans").permitAll()
+                    .requestMatchers("/uploads/profiles/**").permitAll()
+                    .requestMatchers("/api/upload/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_RECEPTION")
                     .anyRequest().authenticated()
             );
 

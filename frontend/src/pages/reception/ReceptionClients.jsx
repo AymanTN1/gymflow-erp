@@ -9,6 +9,8 @@ export default function ReceptionClients() {
   
   // Forms state
   const [newClient, setNewClient] = useState({ nomComplet: '', email: '', telephone: '', cin: '' });
+  const [photoFile, setPhotoFile] = useState(null);
+  const [cinFile, setCinFile] = useState(null);
   const [newMembership, setNewMembership] = useState({ clientId: '', typeAbonnement: '1 MOIS', prixPaye: '' });
   const [invoiceData, setInvoiceData] = useState(null);
   
@@ -57,6 +59,20 @@ export default function ReceptionClients() {
       });
       if (res.ok) {
         const savedClient = await res.json();
+        
+        // --- UPLOAD FILES si présents ---
+        if (photoFile || cinFile) {
+          const formData = new FormData();
+          if (photoFile) formData.append('photo', photoFile);
+          if (cinFile) formData.append('cin', cinFile);
+          
+          await fetch(`http://localhost:8080/api/upload/client/${savedClient.id}`, {
+            method: 'POST',
+            body: formData
+            // Pas de Content-Type manuel pour FormData, fetch met le bon boundary
+          });
+        }
+        
         fetchClients();
         
         // Si le client a un email, passer à l'écran de vérification
@@ -71,6 +87,8 @@ export default function ReceptionClients() {
         }
         
         setNewClient({ nomComplet: '', email: '', telephone: '', cin: '' });
+        setPhotoFile(null);
+        setCinFile(null);
       }
     } catch (err) {
       console.error(err);
@@ -217,7 +235,16 @@ export default function ReceptionClients() {
                       clients.map(c => (
                         <tr key={c.id}>
                           <td>#{c.id}</td>
-                          <td className="fw-bold">{c.nomComplet}</td>
+                          <td className="fw-bold d-flex align-items-center gap-2">
+                            {c.photoUrl ? (
+                              <img src={`http://localhost:8080${c.photoUrl}`} alt="Profile" className="rounded-circle border border-warning" style={{ width: '32px', height: '32px', objectFit: 'cover' }} />
+                            ) : (
+                              <div className="bg-secondary rounded-circle d-flex justify-content-center align-items-center text-white border border-secondary" style={{ width: '32px', height: '32px', fontSize: '14px' }}>
+                                {c.nomComplet.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            {c.nomComplet}
+                          </td>
                           <td>{c.telephone}</td>
                           <td>
                             {c.email ? (
@@ -312,6 +339,20 @@ export default function ReceptionClients() {
               <label className="form-label text-muted">CIN</label>
               <input type="text" className="form-control form-control-dark" 
                 value={newClient.cin} onChange={(e) => setNewClient({...newClient, cin: e.target.value})} />
+            </div>
+            <div className="row mb-4">
+              <div className="col-md-6 mb-3 mb-md-0">
+                <label className="form-label text-muted">Photo de Profil (JPG/PNG)</label>
+                <input type="file" className="form-control form-control-dark" accept="image/*"
+                  onChange={(e) => setPhotoFile(e.target.files[0])} />
+                <small className="text-muted">L'avatar officiel du membre.</small>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label text-muted">Scan CIN (JPG/PDF)</label>
+                <input type="file" className="form-control form-control-dark" accept="image/*,.pdf"
+                  onChange={(e) => setCinFile(e.target.files[0])} />
+                <small className="text-muted">Document confidentiel.</small>
+              </div>
             </div>
             <button type="submit" className="btn btn-gold w-100 py-2">Enregistrer le Client</button>
           </form>

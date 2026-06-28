@@ -296,11 +296,22 @@ export default function ClientDashboard() {
         <div className="col-12 col-md-6">
           <div className="card-premium p-4 h-100">
             <h5 className="fw-bold border-bottom border-warning border-opacity-25 pb-2 mb-3">👤 Mon Profil</h5>
-            <div className="d-flex flex-column gap-2">
-              <div className="d-flex justify-content-between">
-                <span className="text-muted small">Nom</span>
-                <span className="text-white fw-bold">{profile?.nomComplet}</span>
+            
+            <div className="d-flex align-items-center gap-3 mb-4">
+              {profile?.photoUrl ? (
+                <img src={`http://localhost:8080${profile.photoUrl}`} alt="Profile" className="rounded-circle border border-warning shadow-sm" style={{ width: '80px', height: '80px', objectFit: 'cover' }} />
+              ) : (
+                <div className="bg-secondary rounded-circle d-flex justify-content-center align-items-center text-white border border-secondary shadow-sm" style={{ width: '80px', height: '80px', fontSize: '32px' }}>
+                  {profile?.nomComplet?.charAt(0).toUpperCase() || '?'}
+                </div>
+              )}
+              <div>
+                <h5 className="mb-0 text-white fw-bold">{profile?.nomComplet}</h5>
+                <span className="badge bg-gold text-dark mt-1">Membre Officiel</span>
               </div>
+            </div>
+
+            <div className="d-flex flex-column gap-2">
               <div className="d-flex justify-content-between">
                 <span className="text-muted small">Email</span>
                 <span className="text-white">{profile?.email || '—'}</span>

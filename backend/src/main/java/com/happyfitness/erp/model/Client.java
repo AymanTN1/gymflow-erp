@@ -15,6 +15,13 @@ public class Client {
     private String email;
     private String telephone;
     private String cin; // Carte d'Identité Nationale
+
+    @Column(name = "photo_url")
+    private String photoUrl;
+
+    @Column(name = "cin_document_url")
+    private String cinDocumentUrl;
+
     private LocalDateTime dateInscription;
     private String statut; // ACTIF, INACTIF, EXPIRE, EN_ATTENTE
     
@@ -42,6 +49,12 @@ public class Client {
 
     public String getCin() { return cin; }
     public void setCin(String cin) { this.cin = cin; }
+
+    public String getPhotoUrl() { return photoUrl; }
+    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+
+    public String getCinDocumentUrl() { return cinDocumentUrl; }
+    public void setCinDocumentUrl(String cinDocumentUrl) { this.cinDocumentUrl = cinDocumentUrl; }
 
     public LocalDateTime getDateInscription() { return dateInscription; }
     public void setDateInscription(LocalDateTime dateInscription) { this.dateInscription = dateInscription; }
