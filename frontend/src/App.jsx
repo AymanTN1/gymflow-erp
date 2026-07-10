@@ -14,8 +14,10 @@ import ReceptionPointageCours from './pages/reception/ReceptionPointageCours';
 import ReceptionPos from './pages/reception/ReceptionPos';
 import CoachDashboard from './pages/coach/CoachDashboard';
 import CoachChat from './pages/coach/CoachChat';
+import CoachPrograms from './pages/coach/CoachPrograms';
 import ClientDashboard from './pages/client/ClientDashboard';
 import ClientChat from './pages/client/ClientChat';
+import ClientPrograms from './pages/client/ClientPrograms';
 import ClientBooking from './pages/client/ClientBooking';
 import ClientInvoices from './pages/client/ClientInvoices';
 import ClientPayment from './pages/client/ClientPayment';
@@ -48,10 +50,12 @@ function App() {
           {/* Routes Coach */}
           <Route path="/coach" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'COACH']}><CoachDashboard /></PrivateRoute>} />
           <Route path="/coach/chat" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'COACH']}><CoachChat /></PrivateRoute>} />
+          <Route path="/coach/programs" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'COACH']}><CoachPrograms /></PrivateRoute>} />
           
           {/* Routes Client */}
           <Route path="/client" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientDashboard /></PrivateRoute>} />
           <Route path="/client/chat" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientChat /></PrivateRoute>} />
+          <Route path="/client/programs" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientPrograms /></PrivateRoute>} />
           <Route path="/client/booking" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientBooking /></PrivateRoute>} />
           <Route path="/client/invoices" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientInvoices /></PrivateRoute>} />
           <Route path="/client/payment" element={<PrivateRoute allowedRoles={['CLIENT']}><ClientPayment /></PrivateRoute>} />

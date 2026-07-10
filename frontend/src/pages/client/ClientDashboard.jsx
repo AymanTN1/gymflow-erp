@@ -426,6 +426,24 @@ export default function ClientDashboard() {
             <small className="text-gold fw-bold">Chat Coach</small>
           </Link>
         </div>
+      </div>
+      
+      {/* Raccourci additionnel en bas (Programme) */}
+      <div className="row g-3 mt-1">
+        <div className="col-12">
+          <Link to="/client/programs" className="card-premium p-3 d-flex justify-content-between align-items-center text-decoration-none border-info" style={{ transition: 'transform 0.2s', backgroundColor: 'rgba(51, 153, 255, 0.1)' }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <div className="d-flex align-items-center gap-3">
+              <div style={{ fontSize: '32px' }}>🏋️‍♂️</div>
+              <div>
+                <h5 className="text-info fw-bold mb-0">Mes Programmes d'Entraînement</h5>
+                <small className="text-muted">Consultez les exercices préparés par votre coach</small>
+              </div>
+            </div>
+            <span className="badge bg-info text-dark px-3 py-2">Ouvrir</span>
+          </Link>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { apiFetch } from '../../utils/api';
 import { useState, useEffect } from 'react';
 import ErpLayout from '../../components/layout/ErpLayout';
+import { Link } from 'react-router-dom';
 
 const JOURS_MAP = { 0: 'DIMANCHE', 1: 'LUNDI', 2: 'MARDI', 3: 'MERCREDI', 4: 'JEUDI', 5: 'VENDREDI', 6: 'SAMEDI' };
 const COACH_NAME = 'Coach Yassine'; // Simulé pour l'instant
@@ -76,6 +77,26 @@ export default function CoachDashboard() {
             <span className="text-gold fw-bold fs-5">{todayCourses.length}</span>
             <div className="text-muted" style={{ fontSize: '10px' }}>Cours Aujourd'hui</div>
           </div>
+        </div>
+      </div>
+      
+      {/* Raccourcis Rapides */}
+      <div className="row g-3 mb-4">
+        <div className="col-12 col-md-6">
+          <Link to="/coach/chat" className="card-premium p-3 text-center d-block text-decoration-none border-warning" style={{ backgroundColor: 'rgba(230, 184, 0, 0.1)', transition: 'transform 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+            <div style={{ fontSize: '28px' }}>💬</div>
+            <h5 className="text-gold fw-bold mb-0">Messagerie Clients</h5>
+          </Link>
+        </div>
+        <div className="col-12 col-md-6">
+          <Link to="/coach/programs" className="card-premium p-3 text-center d-block text-decoration-none border-info" style={{ backgroundColor: 'rgba(51, 153, 255, 0.1)', transition: 'transform 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+            <div style={{ fontSize: '28px' }}>📋</div>
+            <h5 className="text-info fw-bold mb-0">Programmes d'Entraînement</h5>
+          </Link>
         </div>
       </div>
 
