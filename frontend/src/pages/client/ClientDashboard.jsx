@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { Link } from 'react-router-dom';
 import ErpLayout from '../../components/layout/ErpLayout';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { QRCodeSVG } from 'qrcode.react';
 
 const CLIENT_ID = 1; // Simulé pour l'instant
 
@@ -13,6 +15,7 @@ export default function ClientDashboard() {
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showQrModal, setShowQrModal] = useState(false);
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -183,18 +186,26 @@ export default function ClientDashboard() {
   return (
     <ErpLayout role="CLIENT">
       {/* Header avec nom et affluence */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
           <h2 className="fw-bold mb-1">
-            Bonjour, <span className="text-gold">{profile?.nomComplet || 'Client'}</span> 👋
+            👋 Bonjour, {profile?.nomComplet?.split(' ')[0] || 'Client'} !
           </h2>
-          <p className="text-muted small mb-0">Voici le résumé de votre activité sportive.</p>
+          <p className="text-muted mb-0">Voici un aperçu de votre activité.</p>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <span className="text-muted small">Affluence :</span>
-          <span className={`badge ${affluence.class} border p-2`}>
-            {affluence.emoji} {affluence.text} ({activeCount})
-          </span>
+        <div className="d-flex align-items-center gap-3">
+          <button 
+            className="btn btn-gold fw-bold px-4 py-2"
+            onClick={() => setShowQrModal(true)}
+          >
+            📱 Mon QR Code
+          </button>
+          <div className="d-flex align-items-center gap-2">
+            <span className="text-muted small">Affluence :</span>
+            <span className={`badge ${affluence.class} border p-2`}>
+              {affluence.emoji} {affluence.text} ({activeCount})
+            </span>
+          </div>
         </div>
       </div>
 
@@ -415,7 +426,43 @@ export default function ClientDashboard() {
             <small className="text-gold fw-bold">Chat Coach</small>
           </Link>
         </div>
+        </div>
       </div>
+
+      {/* QR CODE MODAL */}
+      {showQrModal && (
+        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content card-premium border-warning border-opacity-50 text-center p-4">
+              <div className="modal-header border-0 pb-0 justify-content-center position-relative">
+                <h4 className="fw-bold text-gold">Carte d'Accès</h4>
+                <button type="button" className="btn-close btn-close-white position-absolute end-0 top-0 mt-3 me-3" onClick={() => setShowQrModal(false)}></button>
+              </div>
+              <div className="modal-body py-4">
+                <p className="text-muted mb-4">Présentez ce QR Code à la réception pour pointer votre arrivée.</p>
+                
+                <div className="bg-white p-3 rounded-4 d-inline-block mx-auto mb-3 shadow-lg">
+                  <QRCodeSVG 
+                    value={JSON.stringify({ type: 'CLIENT', id: profile?.id || CLIENT_ID, name: profile?.nomComplet })}
+                    size={200}
+                    bgColor={"#ffffff"}
+                    fgColor={"#000000"}
+                    level={"H"}
+                  />
+                </div>
+                
+                <h5 className="fw-bold mt-2">{profile?.nomComplet}</h5>
+                <p className="text-muted small">ID Membre: #{profile?.id || CLIENT_ID}</p>
+                
+                <div className={`badge ${profile?.statut === 'ACTIF' ? 'bg-success' : 'bg-danger'} px-4 py-2 mt-2 fs-6 rounded-pill`}>
+                  {profile?.statut === 'ACTIF' ? '🟢 Abonnement Actif' : '🔴 Inactif'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </ErpLayout>
   );
 }
