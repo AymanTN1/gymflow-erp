@@ -406,6 +406,15 @@ export default function ClientDashboard() {
             <div><span className="badge bg-dark border border-secondary" style={{ fontSize: '9px' }}>Bientôt</span></div>
           </div>
         </div>
+        <div className="col-6 col-md-3">
+          <Link to="/client/chat" className="card-premium p-3 text-center d-block text-decoration-none border-warning" style={{ transition: 'transform 0.2s', backgroundColor: 'rgba(230, 184, 0, 0.1)' }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: '28px' }}>💬</div>
+            <small className="text-gold fw-bold">Chat Coach</small>
+          </Link>
+        </div>
       </div>
     </ErpLayout>
   );
