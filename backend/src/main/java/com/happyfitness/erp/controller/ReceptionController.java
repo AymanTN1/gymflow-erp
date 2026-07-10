@@ -168,4 +168,43 @@ public class ReceptionController {
         
         return ResponseEntity.ok(saved);
     }
+
+    // --- DETTES ---
+
+    @PostMapping("/clients/{id}/debt")
+    public ResponseEntity<?> addDebt(@PathVariable Long id, @RequestBody Map<String, Double> payload) {
+        Client client = clientRepository.findById(id).orElse(null);
+        if (client == null) return ResponseEntity.notFound().build();
+        
+        Double amount = payload.get("amount");
+        if (amount != null && amount > 0) {
+            client.setSoldeImpaye(client.getSoldeImpaye() + amount);
+            clientRepository.save(client);
+        }
+        return ResponseEntity.ok(client);
+    }
+
+    @PostMapping("/clients/{id}/pay-debt")
+    public ResponseEntity<?> payDebt(@PathVariable Long id, @RequestBody Map<String, Double> payload) {
+        Client client = clientRepository.findById(id).orElse(null);
+        if (client == null) return ResponseEntity.notFound().build();
+        
+        Double amount = payload.get("amount");
+        if (amount != null && amount > 0) {
+            double currentDebt = client.getSoldeImpaye();
+            double newDebt = Math.max(0, currentDebt - amount);
+            client.setSoldeImpaye(newDebt);
+            clientRepository.save(client);
+            
+            // Transaction INCOME pour le remboursement
+            Transaction transaction = new Transaction(
+                "INCOME",
+                "REMBOURSEMENT",
+                amount,
+                "Remboursement dette - " + client.getNomComplet()
+            );
+            transactionRepository.save(transaction);
+        }
+        return ResponseEntity.ok(client);
+    }
 }

@@ -22,6 +22,9 @@ public class Client {
     @Column(name = "cin_document_url")
     private String cinDocumentUrl;
 
+    @Column(name = "solde_impaye")
+    private Double soldeImpaye;
+
     private LocalDateTime dateInscription;
     private String statut; // ACTIF, INACTIF, EXPIRE, EN_ATTENTE
     
@@ -32,6 +35,17 @@ public class Client {
         this.dateInscription = LocalDateTime.now();
         this.statut = "EN_ATTENTE";
         this.emailVerified = false;
+        this.soldeImpaye = 0.0;
+    }
+
+    public Client(String nomComplet, String email, String telephone) {
+        this.nomComplet = nomComplet;
+        this.email = email;
+        this.telephone = telephone;
+        this.dateInscription = LocalDateTime.now();
+        this.statut = "EN_ATTENTE";
+        this.emailVerified = false;
+        this.soldeImpaye = 0.0;
     }
 
     // Getters and Setters
@@ -63,7 +77,17 @@ public class Client {
     public void setStatut(String statut) { this.statut = statut; }
 
     public Boolean getEmailVerified() { return emailVerified; }
-    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+    
+    public Double getSoldeImpaye() {
+        return soldeImpaye == null ? 0.0 : soldeImpaye;
+    }
+
+    public void setSoldeImpaye(Double soldeImpaye) {
+        this.soldeImpaye = soldeImpaye;
+    }
 
     public String getVerificationCode() { return verificationCode; }
     public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }

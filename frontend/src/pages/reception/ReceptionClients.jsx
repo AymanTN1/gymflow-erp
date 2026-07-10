@@ -20,6 +20,10 @@ export default function ReceptionClients() {
   const [verifyMessage, setVerifyMessage] = useState(null);
   const [verifyError, setVerifyError] = useState(null);
 
+  // Debt state
+  const [debtClient, setDebtClient] = useState(null);
+  const [debtAmount, setDebtAmount] = useState('');
+
   const fetchClients = async () => {
     try {
       const res = await apiFetch('http://localhost:8080/api/reception/clients');
@@ -179,6 +183,24 @@ export default function ReceptionClients() {
     setActiveTab('list');
   };
 
+  const handlePayDebt = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await apiFetch(`http://localhost:8080/api/reception/clients/${debtClient.id}/pay-debt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: parseFloat(debtAmount) })
+      });
+      if (res.ok) {
+        setDebtClient(null);
+        setDebtAmount('');
+        fetchClients();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const getStatutBadge = (client) => {
     if (client.statut === 'ACTIF') return 'bg-success';
     if (client.statut === 'EN_ATTENTE') return 'bg-warning text-dark';
@@ -225,6 +247,7 @@ export default function ReceptionClients() {
                       <th className="bg-transparent text-muted">Nom Complet</th>
                       <th className="bg-transparent text-muted">Téléphone</th>
                       <th className="bg-transparent text-muted">Email</th>
+                      <th className="bg-transparent text-muted">Dette</th>
                       <th className="bg-transparent text-muted">Statut</th>
                     </tr>
                   </thead>
@@ -269,6 +292,19 @@ export default function ReceptionClients() {
                               </span>
                             ) : (
                               <span className="text-muted">—</span>
+                            )}
+                          </td>
+                          <td>
+                            {c.soldeImpaye > 0 ? (
+                              <button 
+                                className="btn btn-sm btn-danger fw-bold"
+                                onClick={() => { setDebtClient(c); setDebtAmount(c.soldeImpaye); }}
+                                title="Enregistrer un paiement"
+                              >
+                                {c.soldeImpaye} DH
+                              </button>
+                            ) : (
+                              <span className="text-muted">0 DH</span>
                             )}
                           </td>
                           <td>
@@ -531,6 +567,44 @@ export default function ReceptionClients() {
           </div>
         </>
       )}
+
+      {/* ====== DEBT MODAL ====== */}
+      {debtClient && (
+        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content card-premium border-danger">
+              <div className="modal-header border-danger border-opacity-25">
+                <h5 className="modal-title text-danger fw-bold">Règlement de Dette</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setDebtClient(null)}></button>
+              </div>
+              <form onSubmit={handlePayDebt}>
+                <div className="modal-body">
+                  <p className="text-white">Client : <strong>{debtClient.nomComplet}</strong></p>
+                  <p className="text-danger fw-bold fs-5">Reste à payer : {debtClient.soldeImpaye} DH</p>
+                  
+                  <div className="mb-3 mt-4">
+                    <label className="form-label text-muted">Montant à régler (DH)</label>
+                    <input 
+                      type="number" 
+                      className="form-control form-control-dark" 
+                      value={debtAmount}
+                      onChange={(e) => setDebtAmount(e.target.value)}
+                      max={debtClient.soldeImpaye}
+                      min="1"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer border-danger border-opacity-25">
+                  <button type="button" className="btn btn-outline-light" onClick={() => setDebtClient(null)}>Annuler</button>
+                  <button type="submit" className="btn btn-danger">Valider le paiement</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
     </ErpLayout>
   );
 }
