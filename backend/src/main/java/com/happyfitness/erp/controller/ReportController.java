@@ -58,9 +58,14 @@ public class ReportController {
         for (Map.Entry<String, double[]> entry : monthlyData.entrySet()) {
             Map<String, Object> map = new HashMap<>();
             map.put("month", entry.getKey());
-            map.put("Revenus", entry.getValue()[0]);
-            map.put("Dépenses", entry.getValue()[1]);
-            map.put("Benefice", entry.getValue()[0] - entry.getValue()[1]);
+            
+            double revenues = Math.round(entry.getValue()[0] * 100.0) / 100.0;
+            double expenses = Math.round(entry.getValue()[1] * 100.0) / 100.0;
+            double profit = Math.round((revenues - expenses) * 100.0) / 100.0;
+            
+            map.put("Revenus", revenues);
+            map.put("Dépenses", expenses);
+            map.put("Benefice", profit);
             result.add(map);
         }
         
