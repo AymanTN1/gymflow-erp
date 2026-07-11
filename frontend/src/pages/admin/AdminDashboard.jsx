@@ -40,6 +40,24 @@ export default function AdminDashboard() {
   const expenses = transactions.filter(t => t.type === 'EXPENSE').reduce((a, b) => a + b.montant, 0);
   const net = incomes - expenses;
 
+  const handleDownload = async (url, filename) => {
+    try {
+      const response = await apiFetch(url);
+      if (!response.ok) throw new Error("Erreur lors de l'exportation");
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      console.error("Erreur téléchargement:", error);
+      alert("Une erreur est survenue lors de la génération du fichier.");
+    }
+  };
+
   return (
     <ErpLayout role="ADMIN">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -50,12 +68,18 @@ export default function AdminDashboard() {
           </div>
         </div>
         <div className="d-flex gap-2">
-          <a href="http://localhost:8080/api/reports/export/csv" className="btn btn-outline-light px-3 d-flex align-items-center gap-2" download>
+          <button 
+            onClick={() => handleDownload('http://localhost:8080/api/reports/export/csv', 'rapport_financier.csv')} 
+            className="btn btn-outline-light px-3 d-flex align-items-center gap-2"
+          >
             <span>📊</span> CSV (Excel)
-          </a>
-          <a href="http://localhost:8080/api/reports/export/pdf" className="btn btn-gold px-3 d-flex align-items-center gap-2" download target="_blank" rel="noreferrer">
+          </button>
+          <button 
+            onClick={() => handleDownload('http://localhost:8080/api/reports/export/pdf', 'rapport_financier.pdf')} 
+            className="btn btn-gold px-3 d-flex align-items-center gap-2"
+          >
             <span>📄</span> PDF
-          </a>
+          </button>
         </div>
       </div>
 
