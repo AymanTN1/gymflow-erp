@@ -162,18 +162,58 @@ export default function AdminPlanning() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Supprimer ce cours ?')) return;
+    if (!window.confirm('Supprimer ce cours ?')) return;
     try {
-      await apiFetch(`http://localhost:8080/api/courses/${id}`, { method: 'DELETE' });
-      fetchPlanning();
-      fetchCourses();
-    } catch (err) { console.error(err); }
+      const res = await apiFetch(`http://localhost:8080/api/courses/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setMessage({ type: 'success', text: '🗑️ Cours supprimé avec succès !' });
+        fetchPlanning();
+        fetchCourses();
+        resetForm();
+        setTimeout(() => setMessage(null), 3000);
+      } else {
+        setMessage({ type: 'error', text: '❌ Échec de la suppression du cours.' });
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: `❌ Erreur réseau : ${err.message}` });
+      console.error(err);
+    }
   };
 
-  const handleDuplicate = () => {
-    setEditingCourse(null);
-    setMessage({ type: 'success', text: '👯 Mode duplication : Modifiez les détails et cliquez sur Créer le cours.' });
-    setTimeout(() => setMessage(null), 5000);
+  const handleDuplicate = async () => {
+    if (!editingCourse) return;
+    try {
+      const clonedCourse = {
+        nom: form.nom + " (Copie)",
+        coach: form.coach,
+        jour: form.jour,
+        heureDebut: form.heureDebut,
+        heureFin: form.heureFin,
+        capaciteMax: form.capaciteMax,
+        salle: form.salle,
+        couleur: form.couleur,
+        actif: true
+      };
+
+      const res = await apiFetch('http://localhost:8080/api/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clonedCourse)
+      });
+
+      if (res.ok) {
+        setMessage({ type: 'success', text: `👯 Cours "${form.nom}" dupliqué avec succès !` });
+        fetchPlanning();
+        fetchCourses();
+        resetForm();
+        setTimeout(() => setMessage(null), 3000);
+      } else {
+        setMessage({ type: 'error', text: "❌ Impossible de dupliquer le cours." });
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: `❌ Erreur réseau : ${err.message}` });
+      console.error(err);
+    }
   };
 
   const resetForm = () => {
@@ -306,7 +346,7 @@ export default function AdminPlanning() {
                 </button>
               )}
               {editingCourse && (
-                <button type="button" className="btn btn-outline-danger w-100" onClick={() => { handleDelete(editingCourse.id); resetForm(); }}>
+                <button type="button" className="btn btn-outline-danger w-100" onClick={() => handleDelete(editingCourse.id)}>
                   🗑️ Supprimer
                 </button>
               )}
