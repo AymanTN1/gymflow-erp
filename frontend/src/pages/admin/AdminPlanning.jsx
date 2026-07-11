@@ -10,6 +10,7 @@ export default function AdminPlanning() {
   const [planning, setPlanning] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
+  const [message, setMessage] = useState(null); // {type:'success'|'error', text:'...'}
   const [form, setForm] = useState({
     nom: '', coach: '', jour: 'LUNDI', heureDebut: '09:00', heureFin: '10:00',
     capaciteMax: 20, salle: '', couleur: '#FF6B35', actif: true
@@ -47,11 +48,19 @@ export default function AdminPlanning() {
         body: JSON.stringify(form)
       });
       if (res.ok) {
+        setMessage({ type: 'success', text: editingCourse ? '✅ Cours modifié !' : '✅ Cours créé avec succès !' });
         fetchPlanning();
         fetchCourses();
         resetForm();
+        setTimeout(() => setMessage(null), 4000);
+      } else {
+        const errData = await res.text();
+        setMessage({ type: 'error', text: `❌ Erreur ${res.status}: ${errData}` });
       }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      setMessage({ type: 'error', text: `❌ Erreur de connexion : ${err.message}` });
+      console.error(err);
+    }
   };
 
   const handleEdit = (course) => {
@@ -88,6 +97,12 @@ export default function AdminPlanning() {
           {showForm ? '✕ Fermer' : '+ Nouveau Cours'}
         </button>
       </div>
+
+      {message && (
+        <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} py-2 mb-3`}>
+          {message.text}
+        </div>
+      )}
 
       {/* FORMULAIRE */}
       {showForm && (
