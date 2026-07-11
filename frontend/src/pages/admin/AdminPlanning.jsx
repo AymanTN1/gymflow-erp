@@ -8,6 +8,7 @@ const COULEURS = ['#FF6B35', '#00B4D8', '#7209B7', '#F72585', '#4CC9F0', '#06D6A
 export default function AdminPlanning() {
   const [courses, setCourses] = useState([]);
   const [planning, setPlanning] = useState({});
+  const [coaches, setCoaches] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [message, setMessage] = useState(null); // {type:'success'|'error', text:'...'}
@@ -30,9 +31,17 @@ export default function AdminPlanning() {
     } catch (err) { console.error(err); }
   };
 
+  const fetchCoaches = async () => {
+    try {
+      const res = await apiFetch('http://localhost:8080/api/users?role=COACH');
+      if (res.ok) setCoaches(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
   useEffect(() => {
     fetchPlanning();
     fetchCourses();
+    fetchCoaches();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -117,8 +126,37 @@ export default function AdminPlanning() {
               </div>
               <div className="col-md-6">
                 <label className="form-label text-muted">Coach *</label>
-                <input type="text" className="form-control form-control-dark" required placeholder="Ex: Coach Yassine"
-                  value={form.coach} onChange={e => setForm({...form, coach: e.target.value})} />
+                <select 
+                  className="form-select form-control-dark mb-2" 
+                  required
+                  value={coaches.some(c => c.nom === form.coach) ? form.coach : (form.coach ? 'AUTRE' : '')}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === 'AUTRE') {
+                      setForm(prev => ({ ...prev, coach: '' }));
+                    } else {
+                      setForm(prev => ({ ...prev, coach: val }));
+                    }
+                  }}
+                >
+                  <option value="" disabled>Sélectionner un coach...</option>
+                  {coaches.map(c => (
+                    <option key={c.id} value={c.nom}>{c.nom}</option>
+                  ))}
+                  <option value="AUTRE">Autre (Saisir manuellement)...</option>
+                </select>
+                
+                {/* Si 'AUTRE' ou si le nom saisi n'est pas dans la liste des coachs connus, afficher le champ texte pour l'écriture manuelle */}
+                {(!form.coach || !coaches.some(c => c.nom === form.coach)) && (
+                  <input 
+                    type="text" 
+                    className="form-control form-control-dark mt-2 animate-fade-in" 
+                    required 
+                    placeholder="Saisir le nom du coach..."
+                    value={form.coach} 
+                    onChange={e => setForm({ ...form, coach: e.target.value })} 
+                  />
+                )}
               </div>
               <div className="col-md-4">
                 <label className="form-label text-muted">Jour *</label>
