@@ -12,9 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
@@ -117,6 +115,90 @@ public class CheckinController {
         broadcastCountUpdate();
 
         return Map.of("success", true, "status", status);
+    }
+
+    @GetMapping("/stats")
+    public Map<String, Object> getCheckinStats() {
+        List<Attendance> attendances = attendanceRepository.findAll();
+        
+        // 1. Répartition par heure (06h00 - 23h00)
+        Map<Integer, Long> hourlyStats = new TreeMap<>();
+        for (int h = 6; h <= 23; h++) {
+            hourlyStats.put(h, 0L);
+        }
+        
+        // 2. Répartition par jour de la semaine
+        Map<String, Long> dailyStats = new LinkedHashMap<>();
+        String[] days = {"LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI", "DIMANCHE"};
+        for (String day : days) {
+            dailyStats.put(day, 0L);
+        }
+
+        long totalCheckins = attendances.size();
+        long totalDurationMinutes = 0;
+        long durationCount = 0;
+
+        for (Attendance a : attendances) {
+            if (a.getCheckInTime() != null) {
+                int hour = a.getCheckInTime().getHour();
+                if (hour >= 6 && hour <= 23) {
+                    hourlyStats.put(hour, hourlyStats.get(hour) + 1);
+                }
+                
+                java.time.DayOfWeek dayOfWeek = a.getCheckInTime().getDayOfWeek();
+                String dayFr = convertDayOfWeekToFr(dayOfWeek);
+                if (dailyStats.containsKey(dayFr)) {
+                    dailyStats.put(dayFr, dailyStats.get(dayFr) + 1);
+                }
+            }
+
+            if (a.getCheckInTime() != null && a.getCheckOutTime() != null) {
+                long minutes = java.time.Duration.between(a.getCheckInTime(), a.getCheckOutTime()).toMinutes();
+                if (minutes > 0 && minutes < 360) {
+                    totalDurationMinutes += minutes;
+                    durationCount++;
+                }
+            }
+        }
+
+        double avgDuration = durationCount > 0 ? (double) totalDurationMinutes / durationCount : 0.0;
+        avgDuration = Math.round(avgDuration * 100.0) / 100.0;
+
+        List<Map<String, Object>> hourlyList = new ArrayList<>();
+        for (Map.Entry<Integer, Long> entry : hourlyStats.entrySet()) {
+            hourlyList.add(Map.of(
+                "hour", String.format("%02dh00", entry.getKey()),
+                "entrees", entry.getValue()
+            ));
+        }
+
+        List<Map<String, Object>> dailyList = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : dailyStats.entrySet()) {
+            dailyList.add(Map.of(
+                "day", entry.getKey(),
+                "entrees", entry.getValue()
+            ));
+        }
+
+        return Map.of(
+            "totalCheckins", totalCheckins,
+            "avgDurationMinutes", avgDuration,
+            "hourlyDistribution", hourlyList,
+            "dailyDistribution", dailyList
+        );
+    }
+
+    private String convertDayOfWeekToFr(java.time.DayOfWeek day) {
+        switch (day) {
+            case MONDAY: return "LUNDI";
+            case TUESDAY: return "MARDI";
+            case WEDNESDAY: return "MERCREDI";
+            case THURSDAY: return "JEUDI";
+            case FRIDAY: return "VENDREDI";
+            case SATURDAY: return "SAMEDI";
+            case SUNDAY: return "DIMANCHE";
+            default: return "LUNDI";
+        }
     }
 
     private void broadcastCountUpdate() {

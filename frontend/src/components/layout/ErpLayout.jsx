@@ -15,6 +15,7 @@ export default function ErpLayout({ children, role }) {
       case 'ADMIN':
         return [
           { path: '/admin', label: 'Dashboard', icon: '📊' },
+          { path: '/admin/stats-affluence', label: 'Affluence / Pics', icon: '📈' },
           { path: '/admin/planning', label: 'Planning', icon: '📅' },
           { path: '/admin/finances', label: 'Finances', icon: '💰' },
           { path: '/admin/crm', label: 'CRM / Membres', icon: '👥' },

@@ -8,6 +8,7 @@ import AdminRh from './pages/admin/AdminRh';
 import AdminFinances from './pages/admin/AdminFinances';
 import AdminCrm from './pages/admin/AdminCrm';
 import AdminPlanning from './pages/admin/AdminPlanning';
+import AdminStats from './pages/admin/AdminStats';
 import ReceptionDashboard from './pages/reception/ReceptionDashboard';
 import ReceptionClients from './pages/reception/ReceptionClients';
 import ReceptionPointageCours from './pages/reception/ReceptionPointageCours';
@@ -40,6 +41,7 @@ function App() {
           <Route path="/admin/finances" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminFinances /></PrivateRoute>} />
           <Route path="/admin/crm" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminCrm /></PrivateRoute>} />
           <Route path="/admin/planning" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminPlanning /></PrivateRoute>} />
+          <Route path="/admin/stats-affluence" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminStats /></PrivateRoute>} />
           
           {/* Routes Réception */}
           <Route path="/reception" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'RECEPTION']}><ReceptionDashboard /></PrivateRoute>} />
