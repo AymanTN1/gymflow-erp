@@ -29,10 +29,9 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Seulement injecter des données si la base de données est vide
+        // 1. Ajouter les utilisateurs de démonstration si la base est vide
         if (userRepository.count() == 0) {
-            
-            // 1. Ajouter l'Admin (Owner)
+            // Ajouter l'Admin (Owner)
             User admin = new User();
             admin.setNom("M. Ayman (Propriétaire)");
             admin.setEmail("admin@happyfitness.ma");
@@ -40,7 +39,7 @@ public class DataSeeder implements CommandLineRunner {
             admin.setRole("ADMIN");
             userRepository.save(admin);
 
-            // 2. Ajouter quelques employés pour la HR et la Paie
+            // Ajouter quelques employés pour la HR et la Paie
             User coach1 = new User();
             coach1.setNom("Youssef (Coach)");
             coach1.setEmail("youssef@happyfitness.ma");
@@ -55,13 +54,7 @@ public class DataSeeder implements CommandLineRunner {
             reception.setRole("RECEPTION");
             userRepository.save(reception);
 
-            // 3. Simuler des Transactions (Dashboard Finance)
-            transactionRepository.save(new Transaction("EXPENSE", "REDAL", 2500.00, "Facture d'eau et électricité du mois de Mai"));
-            transactionRepository.save(new Transaction("EXPENSE", "GAZ", 450.00, "10 bouteilles de gaz pour les douches"));
-            transactionRepository.save(new Transaction("INCOME", "ABONNEMENT", 124500.00, "Revenus des abonnements globaux du mois en cours"));
-            transactionRepository.save(new Transaction("EXPENSE", "MAINTENANCE", 1200.00, "Réparation de 2 tapis de course"));
-
-            // 4. Simuler une fiche de Paie (Historique de Paie)
+            // Ajouter une fiche de Paie (Historique de Paie)
             Payroll payroll = new Payroll();
             payroll.setEmployeId(coach1.getId());
             payroll.setNomEmploye(coach1.getNom());
@@ -74,10 +67,100 @@ public class DataSeeder implements CommandLineRunner {
             payroll.setDatePaiement(LocalDateTime.now().minusDays(2));
             payrollRepository.save(payroll);
             
-            // Enregistrer automatiquement la transaction pour la paie simulée
-            transactionRepository.save(new Transaction("EXPENSE", "SALAIRE", 4250.00, "Paie de " + coach1.getNom() + " - Juin 2026"));
+            System.out.println("✅ Utilisateurs de démonstration créés avec succès !");
+        }
 
-            System.out.println("✅ Données de démonstration injectées avec succès !");
+        // 2. Générer 5 ans d'historique de transactions dynamique (si vide ou données périmées de plus d'un mois)
+        boolean hasNoTransactions = transactionRepository.count() == 0;
+        boolean needsRefresh = false;
+
+        if (!hasNoTransactions) {
+            // Regarder la date de la dernière transaction
+            var latestTx = transactionRepository.findAll().stream()
+                    .max((t1, t2) -> t1.getDateTransaction().compareTo(t2.getDateTransaction()));
+            if (latestTx.isPresent()) {
+                LocalDateTime latestDate = latestTx.get().getDateTransaction();
+                // Si la dernière transaction date de plus d'un mois, on rafraîchit pour coller au mois en cours
+                if (latestDate.isBefore(LocalDateTime.now().minusDays(30))) {
+                    needsRefresh = true;
+                }
+            }
+        }
+
+        if (hasNoTransactions || needsRefresh) {
+            System.out.println("⏳ Génération dynamique de 5 ans de données financières (Transactions)...");
+            transactionRepository.deleteAll();
+
+            java.util.Random random = new java.util.Random();
+            LocalDateTime startDate = LocalDateTime.now().minusMonths(60);
+            LocalDateTime endDate = LocalDateTime.now();
+
+            LocalDateTime currentDate = startDate;
+            while (currentDate.isBefore(endDate)) {
+                int year = currentDate.getYear();
+                int month = currentDate.getMonthValue();
+
+                // Calcul du facteur de croissance sur 5 ans (de 1.0 à 1.8)
+                int monthsElapsed = (year - startDate.getYear()) * 12 + (month - startDate.getMonthValue());
+                double growthFactor = 1.0 + (monthsElapsed / 60.0) * 0.8;
+
+                // Saisonnalité
+                double seasonality = 1.0;
+                if (month == 1 || month == 2) seasonality = 1.2;
+                else if (month == 9 || month == 10) seasonality = 1.15;
+                else if (month == 7 || month == 8) seasonality = 0.8;
+
+                // --- REVENUS ---
+                double baseSub = 70000 * growthFactor * seasonality;
+                double subAmount = Math.round((baseSub * (0.95 + random.nextDouble() * 0.1)) * 100.0) / 100.0;
+                Transaction tSub = new Transaction("INCOME", "ABONNEMENT", subAmount, "Abonnements membres - " + String.format("%02d", month) + "/" + year);
+                tSub.setDateTransaction(currentDate.withDayOfMonth(5).withHour(10));
+                transactionRepository.save(tSub);
+
+                double baseBoutique = 5000 * growthFactor * (java.util.List.of(6, 7, 8).contains(month) ? 1.2 : 1.0);
+                double boutiqueAmount = Math.round((baseBoutique * (0.85 + random.nextDouble() * 0.3)) * 100.0) / 100.0;
+                Transaction tBoutique = new Transaction("INCOME", "BOUTIQUE", boutiqueAmount, "Ventes boutique - " + String.format("%02d", month) + "/" + year);
+                tBoutique.setDateTransaction(currentDate.withDayOfMonth(28).withHour(18));
+                transactionRepository.save(tBoutique);
+
+                // --- DÉPENSES ---
+                double rentAmount = year < (startDate.getYear() + 3) ? 12000 : 14000;
+                Transaction tRent = new Transaction("EXPENSE", "LOYER", rentAmount, "Loyer mensuel local - " + String.format("%02d", month) + "/" + year);
+                tRent.setDateTransaction(currentDate.withDayOfMonth(1).withHour(9));
+                transactionRepository.save(tRent);
+
+                double baseSalaries = 18000 * (1.0 + (monthsElapsed / 60.0) * 0.5);
+                double salariesAmount = Math.round((baseSalaries * (0.98 + random.nextDouble() * 0.04)) * 100.0) / 100.0;
+                Transaction tSalaries = new Transaction("EXPENSE", "SALAIRE", salariesAmount, "Salaires staff & coachs - " + String.format("%02d", month) + "/" + year);
+                tSalaries.setDateTransaction(currentDate.withDayOfMonth(28).withHour(17));
+                transactionRepository.save(tSalaries);
+
+                double baseRedal = java.util.List.of(6, 7, 8, 9).contains(month) ? 3500 : 2200;
+                double redalAmount = Math.round((baseRedal * (0.9 + random.nextDouble() * 0.2)) * 100.0) / 100.0;
+                Transaction tRedal = new Transaction("EXPENSE", "REDAL", redalAmount, "Facture électricité et eau - " + String.format("%02d", month) + "/" + year);
+                tRedal.setDateTransaction(currentDate.withDayOfMonth(15).withHour(11));
+                transactionRepository.save(tRedal);
+
+                double baseMkt = 3000 * (java.util.List.of(9, 1).contains(month) ? 1.3 : 0.8);
+                double mktAmount = Math.round((baseMkt * (0.8 + random.nextDouble() * 0.4)) * 100.0) / 100.0;
+                Transaction tMkt = new Transaction("EXPENSE", "MARKETING", mktAmount, "Campagne marketing mensuelle - " + String.format("%02d", month) + "/" + year);
+                tMkt.setDateTransaction(currentDate.withDayOfMonth(10).withHour(14));
+                transactionRepository.save(tMkt);
+
+                double maintAmount = Math.round((1500 + random.nextDouble() * 3000) * 100.0) / 100.0;
+                Transaction tMaint = new Transaction("EXPENSE", "MAINTENANCE", maintAmount, "Maintenance équipements - " + String.format("%02d", month) + "/" + year);
+                tMaint.setDateTransaction(currentDate.withDayOfMonth(18).withHour(10));
+                transactionRepository.save(tMaint);
+
+                double baseGaz = java.util.List.of(6, 7, 8).contains(month) ? 450 : 750;
+                double gazAmount = Math.round((baseGaz * (0.9 + random.nextDouble() * 0.2)) * 100.0) / 100.0;
+                Transaction tGaz = new Transaction("EXPENSE", "GAZ", gazAmount, "Recharge bouteilles de gaz - " + String.format("%02d", month) + "/" + year);
+                tGaz.setDateTransaction(currentDate.withDayOfMonth(22).withHour(15));
+                transactionRepository.save(tGaz);
+
+                currentDate = currentDate.plusMonths(1);
+            }
+            System.out.println("✅ Données financières de démonstration rafraîchies sur 5 ans (Jusqu'au mois en cours).");
         }
     }
 }
