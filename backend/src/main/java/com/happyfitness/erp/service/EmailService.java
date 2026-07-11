@@ -6,6 +6,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -190,8 +191,8 @@ public class EmailService {
 
     private String buildBookingConfirmationHtml(Client client, com.happyfitness.erp.model.Course course, java.time.LocalDate date) {
         String formattedDate = date.format(DATE_FMT);
-        String heureDebut = course.getHeureDebut().substring(0, 5);
-        String heureFin = course.getHeureFin().substring(0, 5);
+        String heureDebut = course.getHeureDebut().toString().substring(0, 5);
+        String heureFin = course.getHeureFin().toString().substring(0, 5);
 
         return "<!DOCTYPE html>"
             + "<html><body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>"
@@ -216,5 +217,23 @@ public class EmailService {
             + "  </div>"
             + "</div>"
             + "</body></html>";
+    }
+
+    public void sendMembershipExpiryWarning(String email, String nomComplet, java.time.LocalDate expiryDate) {
+        try {
+            String subject = "⚠️ Votre abonnement GymFlow expire bientôt !";
+            String body = "Bonjour " + nomComplet + ",\n\n"
+                    + "Votre abonnement expire le " + expiryDate.format(DATE_FMT) + ".\n"
+                    + "Pensez à le renouveler pour continuer à profiter de nos services.\n\n"
+                    + "Cordialement,\nL'équipe GymFlow";
+            
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject(subject);
+            message.setText(body);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Erreur envoi email de relance à " + email + ": " + e.getMessage());
+        }
     }
 }

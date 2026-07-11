@@ -76,4 +76,35 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of("message", "Compte administrateur créé avec succès ! (Email: admin@gymflow.com, Password: admin123)"));
     }
+
+    @PostMapping("/reset-demo-passwords")
+    public ResponseEntity<?> resetDemoPasswords() {
+        int updated = 0;
+        
+        var adminOpt = userRepository.findByEmail("admin@happyfitness.ma");
+        if (adminOpt.isPresent()) {
+            User admin = adminOpt.get();
+            admin.setMotDePasse(encoder.encode("admin123"));
+            userRepository.save(admin);
+            updated++;
+        }
+
+        var coachOpt = userRepository.findByEmail("youssef@happyfitness.ma");
+        if (coachOpt.isPresent()) {
+            User coach = coachOpt.get();
+            coach.setMotDePasse(encoder.encode("coach123"));
+            userRepository.save(coach);
+            updated++;
+        }
+
+        var recOpt = userRepository.findByEmail("sara@happyfitness.ma");
+        if (recOpt.isPresent()) {
+            User rec = recOpt.get();
+            rec.setMotDePasse(encoder.encode("rec123"));
+            userRepository.save(rec);
+            updated++;
+        }
+
+        return ResponseEntity.ok(Map.of("message", updated + " mot(s) de passe réinitialisé(s) avec succès."));
+    }
 }

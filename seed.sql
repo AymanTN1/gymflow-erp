@@ -1,7 +1,7 @@
 -- Users
-INSERT INTO users (nom, email, mot_de_passe, role) VALUES ('M. Ayman (Propriétaire)', 'admin@happyfitness.ma', 'admin123', 'ADMIN') ON CONFLICT DO NOTHING;
-INSERT INTO users (nom, email, mot_de_passe, role) VALUES ('Youssef (Coach)', 'youssef@happyfitness.ma', 'coach123', 'COACH') ON CONFLICT DO NOTHING;
-INSERT INTO users (nom, email, mot_de_passe, role) VALUES ('Sara (Réception)', 'sara@happyfitness.ma', 'rec123', 'RECEPTION') ON CONFLICT DO NOTHING;
+INSERT INTO users (nom, email, mot_de_passe, role) VALUES ('M. Ayman (Propriétaire)', 'admin@happyfitness.ma', '$2a$10$AU7evWH1nQBYJ009btWP..3OwMI56jm7TrfIHWFyZ40SvuGSP7AmG', 'ADMIN') ON CONFLICT DO NOTHING;
+INSERT INTO users (nom, email, mot_de_passe, role) VALUES ('Youssef (Coach)', 'youssef@happyfitness.ma', '$2a$10$b7kvH2qOb6R8B/vmENlM4.8jjfoYk4YgThHLjTpXNe1TuLdxXzHg6', 'COACH') ON CONFLICT DO NOTHING;
+INSERT INTO users (nom, email, mot_de_passe, role) VALUES ('Sara (Réception)', 'sara@happyfitness.ma', '$2a$10$8gxcWR2IYJezkKa46KbmV.VwXZyJSFe9H1zdU6Kz62ZrUGPd2iEM2', 'RECEPTION') ON CONFLICT DO NOTHING;
 
 -- Transactions
 INSERT INTO transactions (type, categorie, montant, description, date_transaction) VALUES ('EXPENSE', 'REDAL', 2500.00, 'Facture eau et électricité du mois de Mai', CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING;
