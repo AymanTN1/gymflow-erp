@@ -12,6 +12,8 @@ export default function AdminPlanning() {
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [message, setMessage] = useState(null); // {type:'success'|'error', text:'...'}
+  const [draggingId, setDraggingId] = useState(null);
+  const [dragOverDay, setDragOverDay] = useState(null);
   const [form, setForm] = useState({
     nom: '', coach: '', jour: 'LUNDI', heureDebut: '09:00', heureFin: '10:00',
     capaciteMax: 20, salle: '', couleur: '#FF6B35', actif: true
@@ -43,6 +45,82 @@ export default function AdminPlanning() {
     fetchCourses();
     fetchCoaches();
   }, []);
+
+  // Handlers pour le Drag & Drop
+  const handleDragStart = (e, courseId) => {
+    setDraggingId(courseId);
+    e.dataTransfer.setData('text/plain', courseId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingId(null);
+    setDragOverDay(null);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Nécessaire pour autoriser le drop
+  };
+
+  const handleDragEnter = (e, day) => {
+    e.preventDefault();
+    setDragOverDay(day);
+  };
+
+  const handleDrop = async (e, targetDay) => {
+    e.preventDefault();
+    const courseIdStr = e.dataTransfer.getData('text/plain') || draggingId;
+    if (!courseIdStr) return;
+    const courseId = parseInt(courseIdStr);
+
+    const courseToMove = courses.find(c => c.id === courseId);
+    if (!courseToMove || courseToMove.jour === targetDay) {
+      setDragOverDay(null);
+      return;
+    }
+
+    // Mise à jour optimiste côté client
+    setPlanning(prev => {
+      const updated = { ...prev };
+      const oldDay = courseToMove.jour;
+      if (updated[oldDay]) {
+        updated[oldDay] = updated[oldDay].filter(c => c.id !== courseId);
+      }
+      const updatedCourse = { ...courseToMove, jour: targetDay };
+      if (!updated[targetDay]) updated[targetDay] = [];
+      updated[targetDay] = [...updated[targetDay], updatedCourse].sort((a, b) => 
+        a.heureDebut.localeCompare(b.heureDebut)
+      );
+      return updated;
+    });
+
+    setDragOverDay(null);
+
+    try {
+      const updatedCourseData = {
+        ...courseToMove,
+        jour: targetDay
+      };
+
+      const res = await apiFetch(`http://localhost:8080/api/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedCourseData)
+      });
+
+      if (res.ok) {
+        setMessage({ type: 'success', text: `📅 Cours déplacé avec succès au ${targetDay} !` });
+        fetchPlanning();
+        fetchCourses();
+        setTimeout(() => setMessage(null), 3000);
+      } else {
+        setMessage({ type: 'error', text: "❌ Impossible de déplacer le cours." });
+        fetchPlanning();
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: `❌ Erreur réseau : ${err.message}` });
+      fetchPlanning();
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -224,16 +302,31 @@ export default function AdminPlanning() {
             <tbody>
               <tr>
                 {JOURS.map(jour => (
-                  <td key={jour} className="p-2 align-top bg-transparent" style={{ minHeight: '200px' }}>
+                  <td 
+                    key={jour} 
+                    className={`p-2 align-top drag-column ${dragOverDay === jour ? 'drag-over' : ''}`} 
+                    style={{ minHeight: '200px' }}
+                    onDragOver={handleDragOver}
+                    onDragEnter={(e) => handleDragEnter(e, jour)}
+                    onDrop={(e) => handleDrop(e, jour)}
+                  >
                     {(planning[jour] || []).length === 0 ? (
                       <div className="text-muted text-center small py-4" style={{ opacity: 0.5 }}>—</div>
                     ) : (
                       (planning[jour] || []).map(course => (
-                        <div key={course.id} className="mb-2 p-2 rounded position-relative"
+                        <div 
+                          key={course.id} 
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, course.id)}
+                          onDragEnd={handleDragEnd}
+                          className={`mb-2 p-2 rounded position-relative drag-card ${draggingId === course.id ? 'dragging' : ''}`}
                           style={{
-                            backgroundColor: course.couleur + '20', borderLeft: `3px solid ${course.couleur}`,
-                            fontSize: '12px', transition: 'all 0.2s'
-                          }}>
+                            backgroundColor: course.couleur + '20', 
+                            borderLeft: `3px solid ${course.couleur}`,
+                            fontSize: '12px', 
+                            transition: 'all 0.2s'
+                          }}
+                        >
                           <div className="fw-bold" style={{ color: course.couleur }}>{course.nom}</div>
                           <div className="text-muted" style={{ fontSize: '10px' }}>
                             {course.heureDebut?.slice(0, 5)} - {course.heureFin?.slice(0, 5)}
