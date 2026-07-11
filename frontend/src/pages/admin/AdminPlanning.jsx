@@ -170,6 +170,12 @@ export default function AdminPlanning() {
     } catch (err) { console.error(err); }
   };
 
+  const handleDuplicate = () => {
+    setEditingCourse(null);
+    setMessage({ type: 'success', text: '👯 Mode duplication : Modifiez les détails et cliquez sur Créer le cours.' });
+    setTimeout(() => setMessage(null), 5000);
+  };
+
   const resetForm = () => {
     setShowForm(false);
     setEditingCourse(null);
@@ -191,99 +197,126 @@ export default function AdminPlanning() {
         </div>
       )}
 
-      {/* FORMULAIRE */}
-      {showForm && (
-        <div className="card-premium p-4 mb-4" style={{ maxWidth: '700px', margin: '0 auto' }}>
-          <h5 className="text-gold mb-3">{editingCourse ? '✏️ Modifier le Cours' : '➕ Créer un Nouveau Cours'}</h5>
-          <form onSubmit={handleSubmit}>
-            <div className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label text-muted">Nom du Cours *</label>
-                <input type="text" className="form-control form-control-dark" required placeholder="Ex: Zumba, CrossFit..."
-                  value={form.nom} onChange={e => setForm({...form, nom: e.target.value})} />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label text-muted">Coach *</label>
-                <select 
-                  className="form-select form-control-dark mb-2" 
-                  required
-                  value={coaches.some(c => c.nom === form.coach) ? form.coach : (form.coach ? 'AUTRE' : '')}
-                  onChange={e => {
-                    const val = e.target.value;
-                    if (val === 'AUTRE') {
-                      setForm(prev => ({ ...prev, coach: '' }));
-                    } else {
-                      setForm(prev => ({ ...prev, coach: val }));
-                    }
-                  }}
-                >
-                  <option value="" disabled>Sélectionner un coach...</option>
-                  {coaches.map(c => (
-                    <option key={c.id} value={c.nom}>{c.nom}</option>
-                  ))}
-                  <option value="AUTRE">Autre (Saisir manuellement)...</option>
-                </select>
-                
-                {/* Si 'AUTRE' ou si le nom saisi n'est pas dans la liste des coachs connus, afficher le champ texte pour l'écriture manuelle */}
-                {(!form.coach || !coaches.some(c => c.nom === form.coach)) && (
-                  <input 
-                    type="text" 
-                    className="form-control form-control-dark mt-2 animate-fade-in" 
-                    required 
-                    placeholder="Saisir le nom du coach..."
-                    value={form.coach} 
-                    onChange={e => setForm({ ...form, coach: e.target.value })} 
-                  />
-                )}
-              </div>
-              <div className="col-md-4">
-                <label className="form-label text-muted">Jour *</label>
-                <select className="form-select form-control-dark" value={form.jour} onChange={e => setForm({...form, jour: e.target.value})}>
-                  {JOURS.map(j => <option key={j} value={j}>{j}</option>)}
-                </select>
-              </div>
-              <div className="col-md-4">
-                <label className="form-label text-muted">Heure Début *</label>
+      {/* Backdrop */}
+      <div className={`drawer-backdrop ${showForm ? 'show' : ''}`} onClick={resetForm}></div>
+
+      {/* Panneau Latéral (Drawer) Premium */}
+      <div className={`drawer-premium ${showForm ? 'show' : ''}`}>
+        <div className="drawer-header">
+          <h5 className="text-gold mb-0 fw-bold">{editingCourse ? '✏️ Modifier le Cours' : '➕ Nouveau Cours'}</h5>
+          <button type="button" className="btn btn-outline-warning btn-sm rounded-circle d-flex justify-content-center align-items-center" style={{ width: '30px', height: '30px' }} onClick={resetForm}>✕</button>
+        </div>
+        <div className="drawer-body">
+          <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
+            <div>
+              <label className="form-label text-muted small">Nom du Cours *</label>
+              <input type="text" className="form-control form-control-dark" required placeholder="Ex: Zumba, CrossFit..."
+                value={form.nom} onChange={e => setForm({...form, nom: e.target.value})} />
+            </div>
+            
+            <div>
+              <label className="form-label text-muted small">Coach *</label>
+              <select 
+                className="form-select form-control-dark mb-2" 
+                required
+                value={coaches.some(c => c.nom === form.coach) ? form.coach : (form.coach ? 'AUTRE' : '')}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === 'AUTRE') {
+                    setForm(prev => ({ ...prev, coach: '' }));
+                  } else {
+                    setForm(prev => ({ ...prev, coach: val }));
+                  }
+                }}
+              >
+                <option value="" disabled>Sélectionner un coach...</option>
+                {coaches.map(c => (
+                  <option key={c.id} value={c.nom}>{c.nom}</option>
+                ))}
+                <option value="AUTRE">Autre (Saisir manuellement)...</option>
+              </select>
+              
+              {(!form.coach || !coaches.some(c => c.nom === form.coach)) && (
+                <input 
+                  type="text" 
+                  className="form-control form-control-dark mt-2 animate-fade-in" 
+                  required 
+                  placeholder="Saisir le nom du coach..."
+                  value={form.coach} 
+                  onChange={e => setForm({ ...form, coach: e.target.value })} 
+                />
+              )}
+            </div>
+
+            <div>
+              <label className="form-label text-muted small">Jour *</label>
+              <select className="form-select form-control-dark" value={form.jour} onChange={e => setForm({...form, jour: e.target.value})}>
+                {JOURS.map(j => <option key={j} value={j}>{j}</option>)}
+              </select>
+            </div>
+
+            <div className="row g-2">
+              <div className="col-6">
+                <label className="form-label text-muted small">Heure Début *</label>
                 <input type="time" className="form-control form-control-dark" required
                   value={form.heureDebut} onChange={e => setForm({...form, heureDebut: e.target.value})} />
               </div>
-              <div className="col-md-4">
-                <label className="form-label text-muted">Heure Fin *</label>
+              <div className="col-6">
+                <label className="form-label text-muted small">Heure Fin *</label>
                 <input type="time" className="form-control form-control-dark" required
                   value={form.heureFin} onChange={e => setForm({...form, heureFin: e.target.value})} />
               </div>
-              <div className="col-md-4">
-                <label className="form-label text-muted">Capacité Max</label>
+            </div>
+
+            <div className="row g-2">
+              <div className="col-6">
+                <label className="form-label text-muted small">Capacité Max</label>
                 <input type="number" className="form-control form-control-dark" min="1"
                   value={form.capaciteMax} onChange={e => setForm({...form, capaciteMax: parseInt(e.target.value)})} />
               </div>
-              <div className="col-md-4">
-                <label className="form-label text-muted">Salle</label>
+              <div className="col-6">
+                <label className="form-label text-muted small">Salle</label>
                 <input type="text" className="form-control form-control-dark" placeholder="Ex: Salle A"
                   value={form.salle} onChange={e => setForm({...form, salle: e.target.value})} />
               </div>
-              <div className="col-md-4">
-                <label className="form-label text-muted">Couleur</label>
-                <div className="d-flex gap-2 flex-wrap mt-1">
-                  {COULEURS.map(c => (
-                    <div key={c} onClick={() => setForm({...form, couleur: c})}
-                      style={{
-                        width: '30px', height: '30px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer',
-                        border: form.couleur === c ? '3px solid white' : '2px solid transparent',
-                        transform: form.couleur === c ? 'scale(1.2)' : 'scale(1)', transition: 'all 0.2s'
-                      }}
-                    />
-                  ))}
-                </div>
+            </div>
+
+            <div>
+              <label className="form-label text-muted small">Couleur</label>
+              <div className="d-flex gap-2 flex-wrap mt-1">
+                {COULEURS.map(c => (
+                  <div key={c} onClick={() => setForm({...form, couleur: c})}
+                    style={{
+                      width: '30px', height: '30px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer',
+                      border: form.couleur === c ? '3px solid white' : '2px solid transparent',
+                      transform: form.couleur === c ? 'scale(1.2)' : 'scale(1)', transition: 'all 0.2s'
+                    }}
+                  />
+                ))}
               </div>
             </div>
-            <div className="d-flex gap-2 mt-4">
-              <button type="submit" className="btn btn-gold flex-grow-1 py-2">{editingCourse ? 'Enregistrer' : 'Créer le Cours'}</button>
-              <button type="button" className="btn btn-outline-light" onClick={resetForm}>Annuler</button>
+
+            <div className="d-flex flex-column gap-2 mt-4">
+              <button type="submit" className="btn btn-gold w-100 py-2">
+                {editingCourse ? '💾 Enregistrer les modifications' : '➕ Créer le Cours'}
+              </button>
+              {editingCourse && (
+                <button type="button" className="btn btn-outline-info w-100" onClick={handleDuplicate}>
+                  👯 Dupliquer ce cours
+                </button>
+              )}
+              {editingCourse && (
+                <button type="button" className="btn btn-outline-danger w-100" onClick={() => { handleDelete(editingCourse.id); resetForm(); }}>
+                  🗑️ Supprimer
+                </button>
+              )}
+              <button type="button" className="btn btn-outline-light w-100" onClick={resetForm}>
+                Annuler
+              </button>
             </div>
           </form>
         </div>
-      )}
+      </div>
 
       {/* PLANNING HEBDOMADAIRE */}
       <div className="card-premium p-4">
