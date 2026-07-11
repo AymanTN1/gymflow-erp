@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { apiFetch } from '../../utils/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function NotificationBell({ role }) {
   const [notifications, setNotifications] = useState([]);
