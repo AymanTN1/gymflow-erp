@@ -1,7 +1,9 @@
 package com.happyfitness.erp.controller;
 
 import com.happyfitness.erp.model.Client;
+import com.happyfitness.erp.model.User;
 import com.happyfitness.erp.repository.ClientRepository;
+import com.happyfitness.erp.repository.UserRepository;
 import com.happyfitness.erp.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,9 @@ public class UploadController {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     // Endpoint pour uploader photo et CIN d'un client. RESTREINT AU STAFF
     @PostMapping("/client/{clientId}")
     public ResponseEntity<?> uploadClientDocuments(
@@ -30,8 +35,6 @@ public class UploadController {
             @RequestParam(value = "photo", required = false) MultipartFile photo,
             @RequestParam(value = "cin", required = false) MultipartFile cinDocument) {
 
-        // L'authentification vérifie déjà le rôle via Spring Security (à configurer dans WebSecurityConfig)
-        
         Client client = clientRepository.findById(clientId).orElse(null);
         if (client == null) {
             return ResponseEntity.notFound().build();
@@ -49,8 +52,6 @@ public class UploadController {
 
             if (cinDocument != null && !cinDocument.isEmpty()) {
                 String cinName = fileStorageService.storeDocument(cinDocument, clientId);
-                // L'URL de la CIN est protégée et non servie statiquement.
-                // On stocke le nom du fichier pour pouvoir le récupérer via un endpoint sécurisé
                 client.setCinDocumentUrl(cinName);
                 response.put("cinDocumentUrl", cinName);
             }
@@ -61,6 +62,33 @@ public class UploadController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Erreur lors de l'upload : " + e.getMessage()));
+        }
+    }
+
+    // Endpoint pour uploader la photo de profil d'un collaborateur (Staff)
+    @PostMapping("/user/{userId}")
+    public ResponseEntity<?> uploadUserPhoto(
+            @PathVariable Long userId,
+            @RequestParam("photo") MultipartFile photo) {
+
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            if (photo != null && !photo.isEmpty()) {
+                String photoName = fileStorageService.storeProfilePhoto(photo, userId);
+                String photoUrl = "/uploads/profiles/" + photoName;
+                user.setPhotoUrl(photoUrl);
+                userRepository.save(user);
+                
+                return ResponseEntity.ok(Map.of("photoUrl", photoUrl));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", "Le fichier est vide"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erreur lors de l'upload photo : " + e.getMessage()));
         }
     }
 }

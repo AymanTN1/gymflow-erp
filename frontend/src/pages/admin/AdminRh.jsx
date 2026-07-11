@@ -12,6 +12,7 @@ export default function AdminRh() {
   const [editForm, setEditForm] = useState({ salaireBase: '', commissionParCours: '' });
   const [message, setMessage] = useState('');
   const [formData, setFormData] = useState({ nom: '', email: '', motDePasse: '', role: 'COACH' });
+  const [photoFile, setPhotoFile] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
   const fetchAll = async () => {
@@ -38,8 +39,26 @@ export default function AdminRh() {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
+        const savedUser = await res.json();
+        
+        // Si une photo de profil a été sélectionnée, l'uploader
+        if (photoFile) {
+          const fileData = new FormData();
+          fileData.append('photo', photoFile);
+          
+          await fetch(`http://localhost:8080/api/upload/user/${savedUser.id}`, {
+            method: 'POST',
+            body: fileData
+          });
+        }
+
         setMessage('✅ Collaborateur ajouté !');
         setFormData({ nom: '', email: '', motDePasse: '', role: 'COACH' });
+        setPhotoFile(null);
+        // Réinitialiser le champ file du formulaire
+        const fileInput = document.getElementById('photo-input');
+        if (fileInput) fileInput.value = '';
+
         fetchAll();
         setTimeout(() => setMessage(''), 3000);
       }
@@ -133,6 +152,11 @@ export default function AdminRh() {
                     <option value="SUPER_ADMIN">Administrateur</option>
                   </select>
                 </div>
+                <div>
+                  <label className="form-label text-muted small">Photo de Profil (Optionnelle)</label>
+                  <input type="file" id="photo-input" className="form-control form-control-dark" accept="image/*"
+                    onChange={e => setPhotoFile(e.target.files[0])} />
+                </div>
                 <button type="submit" className="btn btn-gold w-100 fw-bold mt-2">Créer le Compte</button>
               </form>
             </div>
@@ -149,14 +173,23 @@ export default function AdminRh() {
                   ) : staff.map(m => (
                     <div key={m.id} className="p-3 rounded d-flex flex-column flex-md-row justify-content-between align-items-start gap-3"
                       style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                      <div>
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <span className="fw-bold">{m.nom}</span>
-                          <span className={`badge ${m.role === 'SUPER_ADMIN' ? 'bg-danger' : m.role === 'COACH' ? 'bg-primary' : 'bg-warning text-dark'}`}>
-                            {m.role}
-                          </span>
+                      <div className="d-flex align-items-center gap-3">
+                        {m.photoUrl ? (
+                          <img src={`http://localhost:8080${m.photoUrl}`} alt={m.nom} className="rounded-circle border border-warning" style={{ width: '45px', height: '45px', objectFit: 'cover' }} />
+                        ) : (
+                          <div className="bg-gold rounded-circle d-flex justify-content-center align-items-center fw-bold text-dark" style={{ width: '45px', height: '45px', fontSize: '16px', backgroundColor: 'var(--accent-gold)' }}>
+                            {m.nom.substring(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <div className="d-flex align-items-center gap-2 mb-1">
+                            <span className="fw-bold">{m.nom}</span>
+                            <span className={`badge ${m.role === 'SUPER_ADMIN' ? 'bg-danger' : m.role === 'COACH' ? 'bg-primary' : 'bg-warning text-dark'}`}>
+                              {m.role}
+                            </span>
+                          </div>
+                          <div className="text-muted small">{m.email}</div>
                         </div>
-                        <div className="text-muted small">{m.email}</div>
                       </div>
 
                       {editingId === m.id ? (
