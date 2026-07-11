@@ -70,12 +70,10 @@ export default function ReceptionClients() {
           if (photoFile) formData.append('photo', photoFile);
           if (cinFile) formData.append('cin', cinFile);
           
-          const userToken = JSON.parse(localStorage.getItem('gymflow_user'))?.token;
-          await fetch(`http://localhost:8080/api/upload/client/${savedClient.id}`, {
+          // apiFetch gère automatiquement le JWT et le Content-Type pour FormData
+          await apiFetch(`http://localhost:8080/api/upload/client/${savedClient.id}`, {
             method: 'POST',
-            headers: userToken ? { 'Authorization': `Bearer ${userToken}` } : {},
             body: formData
-            // Pas de Content-Type manuel pour FormData, fetch met le bon boundary
           });
         }
         

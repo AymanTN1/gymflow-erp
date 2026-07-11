@@ -1,9 +1,13 @@
 export const apiFetch = async (url, options = {}) => {
   const user = JSON.parse(localStorage.getItem('gymflow_user'));
   
+  // Ne pas forcer Content-Type si le body est un FormData (upload fichiers)
+  // Le navigateur s'occupe d'ajouter le bon boundary multipart automatiquement
+  const isFormData = options.body instanceof FormData;
+  
   const headers = {
-    'Content-Type': 'application/json',
-    ...(options.headers || {})
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(options.headers || {}),
   };
 
   if (user && user.token) {

@@ -41,15 +41,14 @@ export default function AdminRh() {
       if (res.ok) {
         const savedUser = await res.json();
         
-        // Si une photo de profil a été sélectionnée, l'uploader avec le token JWT
+        // Si une photo de profil a été sélectionnée, l'uploader via apiFetch (inclut JWT auto)
         if (photoFile) {
           const fileData = new FormData();
           fileData.append('photo', photoFile);
           
-          const userToken = JSON.parse(localStorage.getItem('gymflow_user'))?.token;
-          await fetch(`http://localhost:8080/api/upload/user/${savedUser.id}`, {
+          // apiFetch gère automatiquement le JWT et le Content-Type pour FormData
+          await apiFetch(`http://localhost:8080/api/upload/user/${savedUser.id}`, {
             method: 'POST',
-            headers: userToken ? { 'Authorization': `Bearer ${userToken}` } : {},
             body: fileData
           });
         }
