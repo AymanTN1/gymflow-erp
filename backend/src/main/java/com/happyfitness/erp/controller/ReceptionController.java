@@ -112,6 +112,7 @@ public class ReceptionController {
             emailService.sendVerificationCode(client.getEmail(), client.getNomComplet(), code);
             return ResponseEntity.ok(Map.of("success", true, "message", "Code renvoyé !"));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Erreur d'envoi de l'email"));
         }
     }
