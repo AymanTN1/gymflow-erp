@@ -157,4 +157,71 @@ public class PosController {
     public List<Sale> getAllSales() {
         return saleRepository.findAll();
     }
+
+    // ============================
+    // PASS JOURNÉE (Séance unique)
+    // ============================
+
+    @PostMapping("/day-pass")
+    public ResponseEntity<?> registerDayPass(@RequestBody Map<String, Object> payload) {
+        String clientName = payload.getOrDefault("clientName", "Client de passage").toString();
+        double prix;
+        try {
+            prix = Double.parseDouble(payload.get("prix").toString());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Prix invalide"));
+        }
+
+        if (prix <= 0) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Le prix doit être supérieur à 0"));
+        }
+
+        String vendeur = payload.getOrDefault("vendeur", "Réception").toString();
+        String telephone = payload.getOrDefault("telephone", "").toString();
+
+        // Enregistrer comme vente
+        Sale sale = new Sale();
+        sale.setProductId(null); // Pas de produit physique
+        sale.setProductNom("Pass Journée - " + clientName);
+        sale.setQuantite(1);
+        sale.setPrixUnitaire(prix);
+        sale.setTotal(prix);
+        sale.setVendeur(vendeur);
+        saleRepository.save(sale);
+
+        // Créer une transaction INCOME pour la comptabilité
+        Transaction transaction = new Transaction(
+            "INCOME",
+            "PASS_JOURNEE",
+            prix,
+            "Pass Journée: " + clientName + (telephone.isEmpty() ? "" : " (Tél: " + telephone + ")")
+        );
+        transactionRepository.save(transaction);
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Pass Journée enregistré pour " + clientName + " — " + prix + " DH",
+            "saleId", sale.getId()
+        ));
+    }
+
+    // Pass Journée du jour
+    @GetMapping("/day-pass/today")
+    public ResponseEntity<?> getTodayDayPasses() {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+
+        List<Sale> sales = saleRepository.findByDateVenteBetween(startOfDay, endOfDay);
+        List<Sale> dayPasses = sales.stream()
+                .filter(s -> s.getProductNom() != null && s.getProductNom().startsWith("Pass Journée"))
+                .collect(Collectors.toList());
+
+        double totalJour = dayPasses.stream().mapToDouble(Sale::getTotal).sum();
+
+        return ResponseEntity.ok(Map.of(
+            "passes", dayPasses,
+            "totalJour", totalJour,
+            "nbPasses", dayPasses.size()
+        ));
+    }
 }

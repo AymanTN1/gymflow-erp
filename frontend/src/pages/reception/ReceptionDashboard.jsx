@@ -9,6 +9,48 @@ export default function ReceptionDashboard() {
   const [checkMessage, setCheckMessage] = useState(null);
   const STAFF_USER_ID = 2; // Simule l'ID du réceptionniste connecté
 
+  // --- PASS JOURNÉE ---
+  const [showDayPassModal, setShowDayPassModal] = useState(false);
+  const [dayPassForm, setDayPassForm] = useState({ clientName: '', telephone: '', prix: '' });
+  const [dayPassMessage, setDayPassMessage] = useState(null);
+  const [dayPassLoading, setDayPassLoading] = useState(false);
+  const [todayPasses, setTodayPasses] = useState([]);
+
+  const fetchTodayPasses = () => {
+    apiFetch('http://localhost:8080/api/pos/day-pass/today')
+      .then(r => r.json())
+      .then(data => setTodayPasses(data.passes || []))
+      .catch(() => {});
+  };
+
+  useEffect(() => { fetchTodayPasses(); }, []);
+
+  const handleDayPassSubmit = async (e) => {
+    e.preventDefault();
+    if (!dayPassForm.clientName.trim() || !dayPassForm.prix) return;
+    setDayPassLoading(true);
+    try {
+      const res = await apiFetch('http://localhost:8080/api/pos/day-pass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dayPassForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDayPassMessage({ type: 'success', text: data.message });
+        setDayPassForm({ clientName: '', telephone: '', prix: '' });
+        fetchTodayPasses();
+        setTimeout(() => { setShowDayPassModal(false); setDayPassMessage(null); }, 2500);
+      } else {
+        setDayPassMessage({ type: 'danger', text: data.message });
+      }
+    } catch {
+      setDayPassMessage({ type: 'danger', text: 'Erreur de connexion au serveur.' });
+    } finally {
+      setDayPassLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Initial fetch for count
     apiFetch('http://localhost:8080/api/checkin/active-count')
@@ -154,7 +196,8 @@ export default function ReceptionDashboard() {
             
             <div className="row g-3">
               <div className="col-6 col-md-4">
-                <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2"
+                  onClick={() => setShowDayPassModal(true)}>
                   <span className="fs-3">🎫</span>
                   <span className="small">Pass Journée</span>
                 </button>
@@ -226,6 +269,83 @@ export default function ReceptionDashboard() {
           </table>
         </div>
       </div>
+      {/* === MODAL PASS JOURNÉE === */}
+      {showDayPassModal && (
+        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0" style={{ backgroundColor: 'var(--dark-card)', color: '#fff' }}>
+              <div className="modal-header border-bottom border-warning border-opacity-25">
+                <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
+                  <span className="fs-4">🎫</span> Pass Journée
+                </h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => { setShowDayPassModal(false); setDayPassMessage(null); }}></button>
+              </div>
+              <form onSubmit={handleDayPassSubmit}>
+                <div className="modal-body">
+                  {dayPassMessage && (
+                    <div className={`alert alert-${dayPassMessage.type} py-2`}>{dayPassMessage.text}</div>
+                  )}
+                  <div className="mb-3">
+                    <label className="form-label small text-muted">Nom du client <span className="text-danger">*</span></label>
+                    <input type="text" className="form-control bg-dark text-white border-secondary"
+                      placeholder="Ex: Mohamed Alami"
+                      value={dayPassForm.clientName}
+                      onChange={e => setDayPassForm({...dayPassForm, clientName: e.target.value})}
+                      required autoFocus />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label small text-muted">Téléphone <span className="text-muted">(optionnel)</span></label>
+                    <input type="tel" className="form-control bg-dark text-white border-secondary"
+                      placeholder="06 XX XX XX XX"
+                      value={dayPassForm.telephone}
+                      onChange={e => setDayPassForm({...dayPassForm, telephone: e.target.value})} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label small text-muted">Prix de la séance (DH) <span className="text-danger">*</span></label>
+                    <div className="input-group">
+                      <input type="number" min="1" step="0.5" className="form-control bg-dark text-white border-secondary fs-4 fw-bold text-center"
+                        placeholder="50"
+                        value={dayPassForm.prix}
+                        onChange={e => setDayPassForm({...dayPassForm, prix: e.target.value})}
+                        required
+                        style={{ letterSpacing: '2px' }} />
+                      <span className="input-group-text bg-warning text-dark fw-bold">DH</span>
+                    </div>
+                  </div>
+
+                  {/* Liste des passes du jour */}
+                  {todayPasses.length > 0 && (
+                    <div className="mt-3 pt-3 border-top border-secondary border-opacity-50">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="small text-muted fw-bold">Passes aujourd'hui</span>
+                        <span className="badge bg-warning text-dark">{todayPasses.length} pass{todayPasses.length > 1 ? 'es' : ''}</span>
+                      </div>
+                      <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
+                        {todayPasses.map((p, i) => (
+                          <div key={i} className="d-flex justify-content-between align-items-center py-1 px-2 rounded mb-1" style={{ backgroundColor: 'rgba(255,204,0,0.08)' }}>
+                            <span className="small">{p.productNom?.replace('Pass Journée - ', '')}</span>
+                            <span className="small fw-bold text-warning">{p.total} DH</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer border-top border-warning border-opacity-25">
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => { setShowDayPassModal(false); setDayPassMessage(null); }}>Annuler</button>
+                  <button type="submit" className="btn btn-gold px-4 d-flex align-items-center gap-2" disabled={dayPassLoading}>
+                    {dayPassLoading ? (
+                      <><span className="spinner-border spinner-border-sm"></span> Enregistrement...</>
+                    ) : (
+                      <>🎫 Enregistrer le Pass</>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </ErpLayout>
   );
 }
