@@ -25,10 +25,47 @@ public class DataSeeder implements CommandLineRunner {
     private PayrollRepository payrollRepository;
 
     @Autowired
+    private com.happyfitness.erp.repository.ProductRepository productRepository;
+
+    @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder encoder;
 
     @Override
     public void run(String... args) throws Exception {
+        // 0. Initialiser les produits POS par défaut s'ils n'existent pas
+        if (productRepository.count() == 0) {
+            com.happyfitness.erp.model.Product eau = new com.happyfitness.erp.model.Product();
+            eau.setNom("Eau Bouteille");
+            eau.setCategorie("BOISSON");
+            eau.setPrixVente(6.00);
+            eau.setPrixAchat(2.00);
+            eau.setStockActuel(150);
+            eau.setStockMin(10);
+            eau.setImage("💧");
+            productRepository.save(eau);
+
+            com.happyfitness.erp.model.Product prot = new com.happyfitness.erp.model.Product();
+            prot.setNom("Protéine");
+            prot.setCategorie("SUPPLEMENT");
+            prot.setPrixVente(30.00);
+            prot.setPrixAchat(18.00);
+            prot.setStockActuel(60);
+            prot.setStockMin(5);
+            prot.setImage("🥤");
+            productRepository.save(prot);
+
+            com.happyfitness.erp.model.Product coach = new com.happyfitness.erp.model.Product();
+            coach.setNom("Coach Privé");
+            coach.setCategorie("SERVICE");
+            coach.setPrixVente(150.00);
+            coach.setPrixAchat(0.00);
+            coach.setStockActuel(9999);
+            coach.setStockMin(0);
+            coach.setImage("🏋️");
+            productRepository.save(coach);
+
+            System.out.println("✅ Produits par défaut créés avec succès !");
+        }
         // 1. Ajouter les utilisateurs de démonstration si la base est vide
         if (userRepository.count() == 0) {
             // Ajouter l'Admin (Owner)

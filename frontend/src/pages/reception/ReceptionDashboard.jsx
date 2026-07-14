@@ -16,6 +16,90 @@ export default function ReceptionDashboard() {
   const [dayPassLoading, setDayPassLoading] = useState(false);
   const [todayPasses, setTodayPasses] = useState([]);
 
+  // --- PANIER POS ---
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [posMessage, setPosMessage] = useState(null);
+  const [posLoading, setPosLoading] = useState(false);
+
+  const fetchProducts = () => {
+    apiFetch('http://localhost:8080/api/pos/products')
+      .then(res => res.json())
+      .then(data => setProducts(data || []))
+      .catch(() => {});
+  };
+
+  const handleAddByName = (name) => {
+    const product = products.find(p => p.nom.toLowerCase() === name.toLowerCase());
+    if (!product) {
+      alert(`Le produit "${name}" n'est pas encore enregistré ou configuré dans la boutique.`);
+      return;
+    }
+    
+    // Vérifier les stocks
+    const existing = cart.find(item => item.product.id === product.id);
+    if (existing) {
+      if (existing.quantite >= product.stockActuel) {
+        alert(`Stock insuffisant pour ${product.nom} (${product.stockActuel} disponibles).`);
+        return;
+      }
+      setCart(cart.map(item => item.product.id === product.id ? { ...item, quantite: item.quantite + 1 } : item));
+    } else {
+      if (product.stockActuel < 1) {
+        alert(`Le produit ${product.nom} est en rupture de stock.`);
+        return;
+      }
+      setCart([...cart, { product, quantite: 1 }]);
+    }
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.product.prixVente * item.quantite, 0);
+
+  const handleCheckout = async () => {
+    if (cart.length === 0) return;
+    setPosLoading(true);
+    setPosMessage(null);
+    let successCount = 0;
+
+    for (const item of cart) {
+      try {
+        const res = await apiFetch('http://localhost:8080/api/pos/sell', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: item.product.id,
+            quantite: item.quantite,
+            vendeur: 'Réception'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          successCount++;
+        } else {
+          setPosMessage({ type: 'danger', text: `Erreur pour ${item.product.nom}: ${data.message}` });
+          setPosLoading(false);
+          return;
+        }
+      } catch (err) {
+        setPosMessage({ type: 'danger', text: 'Erreur de connexion lors de la vente.' });
+        setPosLoading(false);
+        return;
+      }
+    }
+
+    if (successCount === cart.length) {
+      setPosMessage({ type: 'success', text: `✅ Vente enregistrée avec succès (${cartTotal.toFixed(2)} DH) !` });
+      setCart([]);
+      fetchProducts(); // Rafraîchir les stocks
+      setTimeout(() => {
+        setShowCartModal(false);
+        setPosMessage(null);
+      }, 2000);
+    }
+    setPosLoading(false);
+  };
+
   const fetchTodayPasses = () => {
     apiFetch('http://localhost:8080/api/pos/day-pass/today')
       .then(r => r.json())
@@ -23,7 +107,10 @@ export default function ReceptionDashboard() {
       .catch(() => {});
   };
 
-  useEffect(() => { fetchTodayPasses(); }, []);
+  useEffect(() => { 
+    fetchTodayPasses(); 
+    fetchProducts();
+  }, []);
 
   const handleDayPassSubmit = async (e) => {
     e.preventDefault();
@@ -203,27 +290,36 @@ export default function ReceptionDashboard() {
                 </button>
               </div>
               <div className="col-6 col-md-4">
-                <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2"
+                  onClick={() => handleAddByName('Eau Bouteille')}>
                   <span className="fs-3">💧</span>
                   <span className="small">Eau Bouteille</span>
                 </button>
               </div>
               <div className="col-6 col-md-4">
-                <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2"
+                  onClick={() => handleAddByName('Protéine')}>
                   <span className="fs-3">🥤</span>
                   <span className="small">Protéine</span>
                 </button>
               </div>
               <div className="col-6 col-md-4">
-                <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2"
+                  onClick={() => handleAddByName('Coach Privé')}>
                   <span className="fs-3">🏋️</span>
                   <span className="small">Coach Privé</span>
                 </button>
               </div>
               <div className="col-6 col-md-4">
-                <button className="btn btn-gold w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                <button className={`btn btn-gold w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2 position-relative ${cart.length > 0 ? 'pulse' : ''}`}
+                  onClick={() => setShowCartModal(true)}>
                   <span className="fs-3">🛒</span>
-                  <span className="small text-dark fw-bold">Panier (0.00 DH)</span>
+                  <span className="small text-dark fw-bold">Panier ({cartTotal.toFixed(2)} DH)</span>
+                  {cart.length > 0 && (
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                      {cart.reduce((sum, item) => sum + item.quantite, 0)}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
@@ -342,6 +438,91 @@ export default function ReceptionDashboard() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* === MODAL DU PANIER POS === */}
+      {showCartModal && (
+        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0" style={{ backgroundColor: 'var(--dark-card)', color: '#fff' }}>
+              <div className="modal-header border-bottom border-warning border-opacity-25">
+                <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
+                  <span className="fs-4">🛒</span> Panier Caisse Rapide
+                </h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => { setShowCartModal(false); setPosMessage(null); }}></button>
+              </div>
+              <div className="modal-body">
+                {posMessage && (
+                  <div className={`alert alert-${posMessage.type} py-2`}>{posMessage.text}</div>
+                )}
+
+                {cart.length === 0 ? (
+                  <div className="text-center py-4 text-muted">
+                    <span className="fs-1 d-block mb-2">🛒</span>
+                    Le panier est vide. Cliquez sur les produits pour les ajouter.
+                  </div>
+                ) : (
+                  <div>
+                    <div className="list-group list-group-flush mb-3">
+                      {cart.map((item, index) => (
+                        <div key={index} className="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center px-0 py-2">
+                          <div className="d-flex align-items-center gap-2">
+                            <span className="fs-4">{item.product.image}</span>
+                            <div>
+                              <div className="fw-bold">{item.product.nom}</div>
+                              <div className="small text-muted">{item.product.prixVente} DH / unité</div>
+                            </div>
+                          </div>
+                          <div className="d-flex align-items-center gap-3">
+                            <div className="d-flex align-items-center gap-1 bg-dark rounded px-1" style={{ border: '1px solid #444' }}>
+                              <button type="button" className="btn btn-sm btn-link text-warning p-0 px-2 text-decoration-none fw-bold"
+                                onClick={() => {
+                                  if (item.quantite > 1) {
+                                    setCart(cart.map(i => i.product.id === item.product.id ? { ...i, quantite: i.quantite - 1 } : i));
+                                  } else {
+                                    setCart(cart.filter(i => i.product.id !== item.product.id));
+                                  }
+                                }}>-</button>
+                              <span className="px-2 fw-bold">{item.quantite}</span>
+                              <button type="button" className="btn btn-sm btn-link text-warning p-0 px-2 text-decoration-none fw-bold"
+                                onClick={() => {
+                                  if (item.quantite < item.product.stockActuel) {
+                                    setCart(cart.map(i => i.product.id === item.product.id ? { ...i, quantite: i.quantite + 1 } : i));
+                                  } else {
+                                    alert('Stock maximum atteint');
+                                  }
+                                }}>+</button>
+                            </div>
+                            <div className="fw-bold text-warning" style={{ minWidth: '70px', textAlign: 'right' }}>
+                              {(item.product.prixVente * item.quantite).toFixed(2)} DH
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="d-flex justify-content-between align-items-center p-3 rounded mb-3" style={{ backgroundColor: 'rgba(255,204,0,0.08)', border: '1px dashed var(--accent-gold)' }}>
+                      <span className="fw-bold fs-5">Total à Payer :</span>
+                      <span className="fw-bold fs-4 text-warning">{cartTotal.toFixed(2)} DH</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer border-top border-warning border-opacity-25 justify-content-between">
+                <button type="button" className="btn btn-outline-danger" onClick={() => setCart([])} disabled={cart.length === 0 || posLoading}>Vider</button>
+                <div className="d-flex gap-2">
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => { setShowCartModal(false); setPosMessage(null); }}>Fermer</button>
+                  <button type="button" className="btn btn-gold px-4" onClick={handleCheckout} disabled={cart.length === 0 || posLoading}>
+                    {posLoading ? (
+                      <><span className="spinner-border spinner-border-sm"></span> Traitement...</>
+                    ) : (
+                      <>💰 Encaisser la Vente</>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
