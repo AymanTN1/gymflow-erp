@@ -10,13 +10,10 @@ export default function ReceptionPos() {
   const [todaySales, setTodaySales] = useState({ ventes: [], totalJour: 0, nbVentes: 0 });
   const [cart, setCart] = useState([]); // { product, quantite }
   const [showStock, setShowStock] = useState(false);
-  const [showAddProduct, setShowAddProduct] = useState(false);
   const [restockId, setRestockId] = useState(null);
   const [restockQty, setRestockQty] = useState('');
+  const [restockPrixAchat, setRestockPrixAchat] = useState('');
   const [message, setMessage] = useState(null);
-  const [newProduct, setNewProduct] = useState({
-    nom: '', categorie: 'BOISSON', prixVente: '', prixAchat: '', stockActuel: 0, stockMin: 5, image: '💧'
-  });
 
   const fetchAll = async () => {
     try {
@@ -82,33 +79,21 @@ export default function ReceptionPos() {
     setTimeout(() => setMessage(null), 3000);
   };
 
-  // Ajouter un produit
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await apiFetch('http://localhost:8080/api/pos/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProduct)
-      });
-      if (res.ok) {
-        fetchAll();
-        setShowAddProduct(false);
-        setNewProduct({ nom: '', categorie: 'BOISSON', prixVente: '', prixAchat: '', stockActuel: 0, stockMin: 5, image: '💧' });
-      }
-    } catch (err) { console.error(err); }
-  };
 
-  // Réapprovisionner
+
+  // Réapprovisionner (réceptionniste saisit quantité + prix d'achat)
   const handleRestock = async (id) => {
     try {
+      const payload = { quantite: parseInt(restockQty) };
+      if (restockPrixAchat) payload.prixAchat = parseFloat(restockPrixAchat);
       await apiFetch(`http://localhost:8080/api/pos/products/${id}/restock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantite: parseInt(restockQty) })
+        body: JSON.stringify(payload)
       });
       setRestockId(null);
       setRestockQty('');
+      setRestockPrixAchat('');
       fetchAll();
     } catch (err) { console.error(err); }
   };
@@ -118,11 +103,8 @@ export default function ReceptionPos() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold mb-0">🛒 Point de Vente</h2>
         <div className="d-flex gap-2">
-          <button className={`btn ${showStock ? 'btn-gold' : 'btn-outline-light'}`} onClick={() => { setShowStock(!showStock); setShowAddProduct(false); }}>
+          <button className={`btn ${showStock ? 'btn-gold' : 'btn-outline-light'}`} onClick={() => setShowStock(!showStock)}>
             📦 Stock
-          </button>
-          <button className={`btn ${showAddProduct ? 'btn-gold' : 'btn-outline-light'}`} onClick={() => { setShowAddProduct(!showAddProduct); setShowStock(false); }}>
-            + Produit
           </button>
         </div>
       </div>
@@ -138,65 +120,9 @@ export default function ReceptionPos() {
 
       {message && <div className={`alert alert-${message.type} py-2 mb-3`}>{message.text}</div>}
 
-      {/* === FORMULAIRE AJOUT PRODUIT === */}
-      {showAddProduct && (
-        <div className="card-premium p-4 mb-4" style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <h5 className="text-gold mb-3">➕ Nouveau Produit</h5>
-          <form onSubmit={handleAddProduct}>
-            <div className="row g-3">
-              <div className="col-8">
-                <label className="form-label text-muted">Nom *</label>
-                <input type="text" className="form-control form-control-dark" required placeholder="Ex: Eau Sidi Ali 0.5L"
-                  value={newProduct.nom} onChange={e => setNewProduct({...newProduct, nom: e.target.value})} />
-              </div>
-              <div className="col-4">
-                <label className="form-label text-muted">Icône</label>
-                <div className="d-flex gap-1 flex-wrap mt-1">
-                  {EMOJIS.map(em => (
-                    <span key={em} onClick={() => setNewProduct({...newProduct, image: em})}
-                      style={{
-                        fontSize: '22px', cursor: 'pointer', padding: '2px 4px', borderRadius: '6px',
-                        backgroundColor: newProduct.image === em ? 'var(--accent-gold)' : 'transparent'
-                      }}>{em}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="col-4">
-                <label className="form-label text-muted">Catégorie</label>
-                <select className="form-select form-control-dark" value={newProduct.categorie}
-                  onChange={e => setNewProduct({...newProduct, categorie: e.target.value})}>
-                  <option value="BOISSON">Boisson</option>
-                  <option value="SNACK">Snack</option>
-                  <option value="SUPPLEMENT">Supplément</option>
-                </select>
-              </div>
-              <div className="col-4">
-                <label className="form-label text-muted">Prix Vente (DH)</label>
-                <input type="number" step="0.5" className="form-control form-control-dark" required
-                  value={newProduct.prixVente} onChange={e => setNewProduct({...newProduct, prixVente: parseFloat(e.target.value)})} />
-              </div>
-              <div className="col-4">
-                <label className="form-label text-muted">Prix Achat (DH)</label>
-                <input type="number" step="0.5" className="form-control form-control-dark"
-                  value={newProduct.prixAchat} onChange={e => setNewProduct({...newProduct, prixAchat: parseFloat(e.target.value)})} />
-              </div>
-              <div className="col-6">
-                <label className="form-label text-muted">Stock Initial</label>
-                <input type="number" className="form-control form-control-dark"
-                  value={newProduct.stockActuel} onChange={e => setNewProduct({...newProduct, stockActuel: parseInt(e.target.value)})} />
-              </div>
-              <div className="col-6">
-                <label className="form-label text-muted">Seuil Alerte</label>
-                <input type="number" className="form-control form-control-dark"
-                  value={newProduct.stockMin} onChange={e => setNewProduct({...newProduct, stockMin: parseInt(e.target.value)})} />
-              </div>
-            </div>
-            <button type="submit" className="btn btn-gold w-100 py-2 mt-3">Ajouter le Produit</button>
-          </form>
-        </div>
-      )}
 
-      {/* === VUE STOCK === */}
+
+      {/* === VUE STOCK (réceptionniste : pas de prix d'achat, marge, ni recettes) === */}
       {showStock && (
         <div className="card-premium p-4 mb-4">
           <h5 className="text-gold mb-3">📦 Inventaire du Stock</h5>
@@ -205,39 +131,35 @@ export default function ReceptionPos() {
               <thead>
                 <tr>
                   <th className="bg-transparent text-muted">Produit</th>
+                  <th className="bg-transparent text-muted text-center">Prix Vente</th>
                   <th className="bg-transparent text-muted text-center">Stock</th>
                   <th className="bg-transparent text-muted text-center">Seuil</th>
-                  <th className="bg-transparent text-muted text-center">Prix Achat</th>
-                  <th className="bg-transparent text-muted text-center">Prix Vente</th>
-                  <th className="bg-transparent text-muted text-center">Marge</th>
-                  <th className="bg-transparent text-muted text-center">Actions</th>
+                  <th className="bg-transparent text-muted text-center">Réapprovisionner</th>
                 </tr>
               </thead>
               <tbody>
                 {products.map(p => (
                   <tr key={p.id}>
                     <td><span className="me-2">{p.image}</span>{p.nom}</td>
+                    <td className="text-center fw-bold">{p.prixVente?.toFixed(2)} DH</td>
                     <td className="text-center">
                       <span className={`badge ${p.stockActuel <= p.stockMin ? 'bg-danger' : 'bg-success'} px-3`}>
                         {p.stockActuel}
                       </span>
                     </td>
                     <td className="text-center text-muted">{p.stockMin}</td>
-                    <td className="text-center">{p.prixAchat?.toFixed(2) || '—'} DH</td>
-                    <td className="text-center fw-bold">{p.prixVente?.toFixed(2)} DH</td>
-                    <td className="text-center text-success">
-                      {p.prixAchat ? ((p.prixVente - p.prixAchat) / p.prixAchat * 100).toFixed(0) + '%' : '—'}
-                    </td>
                     <td className="text-center">
                       {restockId === p.id ? (
-                        <div className="d-flex gap-1 justify-content-center">
+                        <div className="d-flex gap-1 justify-content-center flex-wrap">
                           <input type="number" className="form-control form-control-dark form-control-sm" style={{ width: '60px' }}
                             value={restockQty} onChange={e => setRestockQty(e.target.value)} placeholder="Qté" autoFocus />
+                          <input type="number" step="0.5" className="form-control form-control-dark form-control-sm" style={{ width: '80px' }}
+                            value={restockPrixAchat} onChange={e => setRestockPrixAchat(e.target.value)} placeholder="P.Achat" />
                           <button className="btn btn-sm btn-success" onClick={() => handleRestock(p.id)}>✓</button>
-                          <button className="btn btn-sm btn-outline-light" onClick={() => setRestockId(null)}>✕</button>
+                          <button className="btn btn-sm btn-outline-light" onClick={() => { setRestockId(null); setRestockPrixAchat(''); }}>✕</button>
                         </div>
                       ) : (
-                        <button className="btn btn-sm btn-outline-warning" onClick={() => { setRestockId(p.id); setRestockQty(''); }}>
+                        <button className="btn btn-sm btn-outline-warning" onClick={() => { setRestockId(p.id); setRestockQty(''); setRestockPrixAchat(''); }}>
                           + Stock
                         </button>
                       )}
@@ -251,7 +173,7 @@ export default function ReceptionPos() {
       )}
 
       {/* === CAISSE RAPIDE (VUE PRINCIPALE) === */}
-      {!showStock && !showAddProduct && (
+      {!showStock && (
         <div className="row g-3">
           {/* Grille de produits */}
           <div className="col-md-8">
@@ -347,19 +269,15 @@ export default function ReceptionPos() {
             </div>
           </div>
 
-          {/* Résumé du jour */}
+          {/* Résumé du jour (sans recettes - confidentiel) */}
           <div className="col-12">
             <div className="card-premium p-4">
               <div className="row text-center">
-                <div className="col-4">
-                  <h2 className="text-gold fw-bold">{todaySales.totalJour?.toFixed(2) || '0.00'} DH</h2>
-                  <p className="text-muted mb-0">Recettes Buvette Aujourd'hui</p>
-                </div>
-                <div className="col-4">
+                <div className="col-6">
                   <h2 className="text-gold fw-bold">{todaySales.nbVentes || 0}</h2>
-                  <p className="text-muted mb-0">Ventes</p>
+                  <p className="text-muted mb-0">Ventes Aujourd'hui</p>
                 </div>
-                <div className="col-4">
+                <div className="col-6">
                   <h2 className="text-gold fw-bold">{products.length}</h2>
                   <p className="text-muted mb-0">Produits en Catalogue</p>
                 </div>
