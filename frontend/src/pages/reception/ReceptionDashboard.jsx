@@ -305,9 +305,9 @@ export default function ReceptionDashboard() {
               </div>
               <div className="col-6 col-md-4">
                 <button className="btn btn-outline-light w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2"
-                  onClick={() => handleAddByName('Coach Privé')}>
-                  <span className="fs-3">🏋️</span>
-                  <span className="small">Coach Privé</span>
+                  onClick={() => handleAddByName('Café')}>
+                  <span className="fs-3">☕</span>
+                  <span className="small">Café</span>
                 </button>
               </div>
               <div className="col-6 col-md-4">

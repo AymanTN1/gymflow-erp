@@ -54,15 +54,15 @@ public class DataSeeder implements CommandLineRunner {
             prot.setImage("🥤");
             productRepository.save(prot);
 
-            com.happyfitness.erp.model.Product coach = new com.happyfitness.erp.model.Product();
-            coach.setNom("Coach Privé");
-            coach.setCategorie("SERVICE");
-            coach.setPrixVente(150.00);
-            coach.setPrixAchat(0.00);
-            coach.setStockActuel(9999);
-            coach.setStockMin(0);
-            coach.setImage("🏋️");
-            productRepository.save(coach);
+            com.happyfitness.erp.model.Product cafe = new com.happyfitness.erp.model.Product();
+            cafe.setNom("Café");
+            cafe.setCategorie("BOISSON");
+            cafe.setPrixVente(10.00);
+            cafe.setPrixAchat(3.00);
+            cafe.setStockActuel(200);
+            cafe.setStockMin(20);
+            cafe.setImage("☕");
+            productRepository.save(cafe);
 
             System.out.println("✅ Produits par défaut créés avec succès !");
         }
