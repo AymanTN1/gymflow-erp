@@ -30,6 +30,15 @@ public class DataSeeder implements CommandLineRunner {
     @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder encoder;
 
+    @Autowired
+    private com.happyfitness.erp.repository.ClientRepository clientRepository;
+
+    @Autowired
+    private com.happyfitness.erp.repository.AttendanceRepository attendanceRepository;
+
+    @Autowired
+    private com.happyfitness.erp.repository.MembershipRepository membershipRepository;
+
     @Override
     public void run(String... args) throws Exception {
         // 0. Initialiser les produits POS par défaut s'ils n'existent pas
@@ -198,6 +207,92 @@ public class DataSeeder implements CommandLineRunner {
                 currentDate = currentDate.plusMonths(1);
             }
             System.out.println("✅ Données financières de démonstration rafraîchies sur 5 ans (Jusqu'au mois en cours).");
+        }
+
+        // 3. Générer 10 clients avec abonnements et historiques de pointages si la table clients est vide
+        if (clientRepository.count() == 0) {
+            System.out.println("⏳ Génération des 10 clients de démonstration avec historique de fréquentation...");
+
+            // Définir les profils
+            String[][] profiles = {
+                {"Ahmed Benali", "ahmed@gmail.com", "0612345678", "ACTIF", "5", "0", "30"}, // assidu, 5 visites/sem, dernière visite il y a 0j, abo reste 30j
+                {"Fatima Zahra", "fatima@gmail.com", "0623456789", "ACTIF", "4", "1", "60"}, // assidu, 4 visites/sem, dernière visite il y a 1j, abo reste 60j
+                {"Youssef Amrani", "youssef.amr@gmail.com", "0634567890", "ACTIF", "3", "2", "45"}, // régulier, 3 visites/sem, dernière visite il y a 2j, abo reste 45j
+                {"Karim Tazi", "karim@gmail.com", "0645678901", "ACTIF", "2", "3", "90"}, // régulier, 2.5 visites/sem, dernière visite il y a 3j, abo reste 90j
+                {"Salma Idrissi", "salma@gmail.com", "0656789012", "ACTIF", "2", "5", "15"}, // moyenne, 2 visites/sem, dernière visite il y a 5j, abo reste 15j
+                {"Omar Bennani", "omar@gmail.com", "0667890123", "ACTIF", "1.5", "7", "120"}, // occasionnel, 1.5 visites/sem, dernière visite il y a 7j, abo reste 120j
+                {"Nadia Filali", "nadia@gmail.com", "0678901234", "ACTIF", "0.5", "12", "10"}, // déclin, 0.5 visites/sem, dernière visite il y a 12j, abo reste 10j
+                {"Hassan Ouazzani", "hassan@gmail.com", "0689012345", "ACTIF", "0.3", "15", "5"}, // déclin, 0.3 visites/sem, dernière visite il y a 15j, abo reste 5j
+                {"Rachid Alaoui", "rachid@gmail.com", "0690123456", "ACTIF", "0.0", "25", "2"}, // fantôme, 0 visites, dernière visite il y a 25j, abo reste 2j
+                {"Imane Chraibi", "imane@gmail.com", "0601234567", "INACTIF", "0.0", "35", "-10"} // fantôme, 0 visites, dernière visite il y a 35j, abo expiré de 10j
+            };
+
+            for (String[] prof : profiles) {
+                com.happyfitness.erp.model.Client client = new com.happyfitness.erp.model.Client();
+                client.setNomComplet(prof[0]);
+                client.setEmail(prof[1]);
+                client.setTelephone(prof[2]);
+                client.setStatut(prof[3]);
+                client.setDateInscription(LocalDateTime.now().minusMonths(6));
+                client.setSoldeImpaye(0.0);
+                client.setEmailVerified(true);
+                client = clientRepository.save(client);
+
+                // Ajouter l'abonnement
+                com.happyfitness.erp.model.Membership membership = new com.happyfitness.erp.model.Membership();
+                membership.setClientId(client.getId());
+                membership.setTypeAbonnement("3 MOIS");
+                membership.setPrixPaye(1000.0);
+                membership.setDateDebut(LocalDateTime.now().minusDays(90 - Integer.parseInt(prof[6])));
+                membership.setDateFin(LocalDateTime.now().plusDays(Integer.parseInt(prof[6])));
+                membership.setStatut(Integer.parseInt(prof[6]) > 0 ? "ACTIF" : "EXPIRE");
+                membershipRepository.save(membership);
+
+                // Générer des pointages
+                double visitsPerWeek = Double.parseDouble(prof[4]);
+                int lastVisitDaysAgo = Integer.parseInt(prof[5]);
+
+                if (visitsPerWeek > 0 || lastVisitDaysAgo <= 35) {
+                    // Visite la plus récente
+                    com.happyfitness.erp.model.Attendance latest = new com.happyfitness.erp.model.Attendance();
+                    latest.setClientId(client.getId());
+                    latest.setCheckInTime(LocalDateTime.now().minusDays(lastVisitDaysAgo).withHour(10).withMinute(0));
+                    latest.setCheckOutTime(LocalDateTime.now().minusDays(lastVisitDaysAgo).withHour(11).withMinute(30));
+                    latest.setStatus("LEFT");
+                    attendanceRepository.save(latest);
+
+                    // Générer le reste de l'historique sur les 60 derniers jours
+                    java.util.Random rand = new java.util.Random();
+                    int totalWeeks = 8;
+                    for (int w = 0; w < totalWeeks; w++) {
+                        // Nombre de visites cette semaine-là
+                        int numVisits = (int) Math.round(visitsPerWeek);
+                        if (prof[0].equals("Nadia Filali") || prof[0].equals("Hassan Ouazzani")) {
+                            // Déclin : beaucoup plus de visites au début, moins à la fin
+                            if (w < 4) numVisits = 3;
+                            else if (w < 6) numVisits = 1;
+                            else numVisits = 0;
+                        } else if (prof[0].equals("Rachid Alaoui") || prof[0].equals("Imane Chraibi")) {
+                            // Fantômes : quelques visites au début, aucune à la fin
+                            if (w < 3) numVisits = 2;
+                            else numVisits = 0;
+                        }
+
+                        for (int v = 0; v < numVisits; v++) {
+                            int dayOffset = w * 7 + rand.nextInt(5) + 1 + lastVisitDaysAgo;
+                            if (dayOffset >= 90) continue;
+
+                            com.happyfitness.erp.model.Attendance att = new com.happyfitness.erp.model.Attendance();
+                            att.setClientId(client.getId());
+                            att.setCheckInTime(LocalDateTime.now().minusDays(dayOffset).withHour(8 + rand.nextInt(10)).withMinute(0));
+                            att.setCheckOutTime(att.getCheckInTime().plusHours(1).plusMinutes(30));
+                            att.setStatus("LEFT");
+                            attendanceRepository.save(att);
+                        }
+                    }
+                }
+            }
+            System.out.println("✅ 10 clients de démonstration et historiques de pointages générés !");
         }
     }
 }
