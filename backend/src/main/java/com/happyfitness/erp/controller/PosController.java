@@ -41,7 +41,17 @@ public class PosController {
 
     @PostMapping("/products")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        return ResponseEntity.ok(productRepository.save(product));
+        Product saved = productRepository.save(product);
+        if (saved.getStockActuel() > 0) {
+            Transaction transaction = new Transaction(
+                "EXPENSE",
+                "ACHAT_STOCK",
+                saved.getPrixAchat() * saved.getStockActuel(),
+                "Stock Initial: " + saved.getStockActuel() + "x " + saved.getNom()
+            );
+            transactionRepository.save(transaction);
+        }
+        return ResponseEntity.ok(saved);
     }
 
     @PutMapping("/products/{id}")
@@ -74,6 +84,17 @@ public class PosController {
         return productRepository.findById(id).map(p -> {
             p.setStockActuel(p.getStockActuel() + qty);
             productRepository.save(p);
+            
+            if (qty > 0) {
+                Transaction transaction = new Transaction(
+                    "EXPENSE",
+                    "ACHAT_STOCK",
+                    p.getPrixAchat() * qty,
+                    "Réapprovisionnement: " + qty + "x " + p.getNom()
+                );
+                transactionRepository.save(transaction);
+            }
+            
             return ResponseEntity.ok(Map.of("success", true, "newStock", p.getStockActuel()));
         }).orElse(ResponseEntity.notFound().build());
     }

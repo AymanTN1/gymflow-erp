@@ -18,6 +18,7 @@ export default function ErpLayout({ children, role }) {
           { path: '/admin/stats-affluence', label: 'Affluence / Pics', icon: '📈' },
           { path: '/admin/planning', label: 'Planning', icon: '📅' },
           { path: '/admin/finances', label: 'Finances', icon: '💰' },
+          { path: '/admin/boutique', label: 'Boutique & Stock', icon: '🛒' },
           { path: '/admin/crm', label: 'CRM / Membres', icon: '👥' },
           { path: '/admin/rh', label: 'RH', icon: '👔' },
           { path: '/admin/churn', label: 'Analyse Churn', icon: '🔴' },

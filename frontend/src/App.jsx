@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminRh from './pages/admin/AdminRh';
 import AdminFinances from './pages/admin/AdminFinances';
+import AdminBoutique from './pages/admin/AdminBoutique';
 import AdminCrm from './pages/admin/AdminCrm';
 import AdminPlanning from './pages/admin/AdminPlanning';
 import AdminStats from './pages/admin/AdminStats';
@@ -43,6 +44,7 @@ function App() {
           <Route path="/admin" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminDashboard /></PrivateRoute>} />
           <Route path="/admin/rh" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminRh /></PrivateRoute>} />
           <Route path="/admin/finances" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminFinances /></PrivateRoute>} />
+          <Route path="/admin/boutique" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminBoutique /></PrivateRoute>} />
           <Route path="/admin/crm" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminCrm /></PrivateRoute>} />
           <Route path="/admin/planning" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminPlanning /></PrivateRoute>} />
           <Route path="/admin/stats-affluence" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminStats /></PrivateRoute>} />
