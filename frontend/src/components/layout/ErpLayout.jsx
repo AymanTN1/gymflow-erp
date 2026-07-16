@@ -20,6 +20,10 @@ export default function ErpLayout({ children, role }) {
           { path: '/admin/finances', label: 'Finances', icon: '💰' },
           { path: '/admin/crm', label: 'CRM / Membres', icon: '👥' },
           { path: '/admin/rh', label: 'RH', icon: '👔' },
+          { path: '/admin/churn', label: 'Analyse Churn', icon: '🔴' },
+          { path: '/admin/segments', label: 'Segments Clients', icon: '👥' },
+          { path: '/admin/previsions', label: 'Prévisions Affluence', icon: '📈' },
+          { path: '/admin/optimisation', label: 'Optimisation Planning', icon: '🧮' },
         ];
       case 'RECEPTION':
         return [

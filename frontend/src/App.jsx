@@ -9,6 +9,10 @@ import AdminFinances from './pages/admin/AdminFinances';
 import AdminCrm from './pages/admin/AdminCrm';
 import AdminPlanning from './pages/admin/AdminPlanning';
 import AdminStats from './pages/admin/AdminStats';
+import AdminChurn from './pages/admin/AdminChurn';
+import AdminSegmentation from './pages/admin/AdminSegmentation';
+import AdminPrevisions from './pages/admin/AdminPrevisions';
+import AdminOptimisation from './pages/admin/AdminOptimisation';
 import ReceptionDashboard from './pages/reception/ReceptionDashboard';
 import ReceptionClients from './pages/reception/ReceptionClients';
 import ReceptionPointageCours from './pages/reception/ReceptionPointageCours';
@@ -42,6 +46,10 @@ function App() {
           <Route path="/admin/crm" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminCrm /></PrivateRoute>} />
           <Route path="/admin/planning" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminPlanning /></PrivateRoute>} />
           <Route path="/admin/stats-affluence" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminStats /></PrivateRoute>} />
+          <Route path="/admin/churn" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminChurn /></PrivateRoute>} />
+          <Route path="/admin/segments" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminSegmentation /></PrivateRoute>} />
+          <Route path="/admin/previsions" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminPrevisions /></PrivateRoute>} />
+          <Route path="/admin/optimisation" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}><AdminOptimisation /></PrivateRoute>} />
           
           {/* Routes Réception */}
           <Route path="/reception" element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'RECEPTION']}><ReceptionDashboard /></PrivateRoute>} />
