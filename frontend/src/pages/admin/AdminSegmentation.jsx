@@ -91,7 +91,8 @@ export default function AdminSegmentation() {
                     <span className="fw-bold text-light">{seg.avg_visits_per_week} / sem</span>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
 
           {/* LISTE DES MEMBRES SEGMENTÉS */}
@@ -128,7 +129,7 @@ export default function AdminSegmentation() {
                           </span>
                         </td>
                         <td className="bg-transparent text-center fw-bold">{c.avg_visits_per_week} / sem</td>
-                        <td className="bg-transparent text-center">{c.preferred_hour:02d}:00</td>
+                        <td className="bg-transparent text-center">{String(c.preferred_hour).padStart(2, '0')}:00</td>
                         <td className="bg-transparent text-center">{getDayName(c.preferred_day)}</td>
                         <td className="bg-transparent text-center fw-bold">{c.total_visits}</td>
                       </tr>
