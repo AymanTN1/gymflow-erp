@@ -59,8 +59,7 @@ services:
     restart: unless-stopped
 
   ml-service:
-    build:
-      context: ./ml-service
+    image: gymflow-erp-ml-service
     container_name: gymflow-ml
     environment:
       DB_HOST: db
