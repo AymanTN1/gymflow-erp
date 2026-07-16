@@ -58,5 +58,21 @@ services:
       - "8025:8025"
     restart: unless-stopped
 
+  ml-service:
+    build:
+      context: ./ml-service
+    container_name: gymflow-ml
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: gymflow_erp
+      DB_USER: postgres
+      DB_PASS: postgres
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
 volumes:
   postgres_data:
