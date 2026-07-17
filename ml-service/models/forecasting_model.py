@@ -87,6 +87,7 @@ class AttendanceForecaster:
 
     def forecast_daily(self, days: int = 7) -> list:
         """Forecast daily attendance for the next N days."""
+        days = min(days, 30)
         if not self.is_trained:
             self.train()
 

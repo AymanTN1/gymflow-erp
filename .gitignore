@@ -6,6 +6,9 @@ backend/uploads/
 __pycache__/
 *.pyc
 *.pyo
+.coverage
+htmlcov/
+
 
 # Environment
 .env

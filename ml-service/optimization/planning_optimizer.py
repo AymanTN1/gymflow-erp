@@ -167,9 +167,13 @@ class PlanningOptimizer:
         # === CONSTRAINT C3: Minimum coverage for high-demand slots ===
         for s in slots:
             if demand.get(s["id"], 0) >= 15:
-                prob += pulp.lpSum(
-                    x[(c["id"], s["id"])] for c in coaches
-                ) >= 1, f"MinCoverage_{s['id']}"
+                # Only enforce if at least one coach is available for this slot
+                avail_coaches = [c for c in coaches if availability.get((c["id"], s["id"]), 0) == 1]
+                if avail_coaches:
+                    prob += pulp.lpSum(
+                        x[(c["id"], s["id"])] for c in avail_coaches
+                    ) >= 1, f"MinCoverage_{s['id']}"
+
 
         # === CONSTRAINT C4: Max 2 coaches per slot ===
         for s in slots:
